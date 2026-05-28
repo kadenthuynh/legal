@@ -906,7 +906,10 @@ function toast(msg,type,dur){
 // ═══════════════════════════════════════════════════════
 // ROLES / TYPES SYSTEM
 // ═══════════════════════════════════════════════════════
-function allTypes(){return BUILTIN_TYPES.concat(customTypes);}
+function allTypes(){
+  var base=BUILTIN_TYPES.filter(function(t){return t!=='Other';});
+  return base.concat(customTypes).concat(['Other']);
+}
 
 // ─── CUSTOM ROLE COLORS ───────────────────────────────
 const CUSTOM_ROLE_PALETTE = [
@@ -1518,11 +1521,30 @@ function gcalEnsureToken(onReady){
   if(gcalAccessToken&&Date.now()<gcalTokenExpiry){onReady();return;}
   // Need a fresh token — initialize client if needed, then prompt
   if(!gcalTokenClient){
-    if(typeof google!=='undefined'&&google.accounts){gcalInitUI();}
-    else{toast('Google sign-in not ready, try again in a moment','info');return;}
+    if(typeof google!=='undefined'&&google.accounts){
+      gcalInitUI();
+      if(!gcalTokenClient){toast('Google sign-in not ready, try again in a moment','info');return;}
+    } else {
+      // GSI script not yet loaded — wait up to 5s then retry
+      toast('Connecting to Google…','info');
+      var waited=0;
+      var waitForGsi=setInterval(function(){
+        waited+=200;
+        if(typeof google!=='undefined'&&google.accounts){
+          clearInterval(waitForGsi);
+          gcalInitUI();
+          gcalPendingAction=onReady;
+          gcalTokenClient.requestAccessToken({prompt:''});
+        } else if(waited>=5000){
+          clearInterval(waitForGsi);
+          toast('Google sign-in not available, try again in a moment','error');
+        }
+      },200);
+      return;
+    }
   }
   gcalPendingAction=onReady;
-  gcalTokenClient.requestAccessToken({prompt:'consent'});
+  gcalTokenClient.requestAccessToken({prompt:''});
 }
 
 async function gcalCreateEvent(c){
