@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legal Directory v8 — Kaden Huynh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+/* ── FORCED DARK MODE — ignores OS/browser preference ── */
+:root{
+  --bg:#131310;--surface:#1c1c19;--surface2:#222220;--surface3:#2a2a27;
+  --border:rgba(255,255,255,0.07);--border-med:rgba(255,255,255,0.12);--border-strong:rgba(255,255,255,0.22);
+  --text:#eeeee6;--text2:#a6a69a;--text3:#646458;
+  --accent:#5a7dd4;--accent-bg:#1a2540;--accent-text:#a0b8e8;
+  --judge-dot:#7F77DD;--judge-bar:#7F77DD;--judge-bg:#26215C;--judge-text:#CECBF6;
+  --atty-dot:#378ADD;--atty-bar:#378ADD;--atty-bg:#042C53;--atty-text:#B5D4F4;
+  --school-dot:#639922;--school-bar:#639922;--school-bg:#173404;--school-text:#C0DD97;
+  --prof-dot:#BA7517;--prof-bar:#BA7517;--prof-bg:#412402;--prof-text:#FAC775;
+  --custom-dot:#8B6CC8;--custom-bar:#8B6CC8;--custom-bg:#2A1F45;--custom-text:#C4AEFF;
+  --red-bg:#501313;--red-text:#F7C1C1;--red-border:#791F1F;
+  --amber-bg:#412402;--amber-text:#FAC775;--amber-border:#854F0B;
+  --green-bg:#173404;--green-text:#C0DD97;--green-border:#085041;
+  --radius:10px;--radius-sm:6px;
+  --shadow:0 1px 3px rgba(0,0,0,0.25),0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md:0 4px 20px rgba(0,0,0,0.4);
+}
+/* force dark on html/body regardless of system theme */
+html{color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-med);border-radius:10px}
+.shell{display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:228px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sb-brand{padding:1.1rem 1rem .9rem;border-bottom:1px solid var(--border)}
+.sb-brand-name{font-family:'DM Serif Display',serif;font-size:16px;letter-spacing:-.01em;color:var(--text)}
+.sb-nav{flex:1;overflow-y:auto;padding:.4rem 0}
+.sb-section{font-size:9.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:.7rem 1rem .3rem}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 1rem;font-size:12.5px;cursor:pointer;color:var(--text2);transition:all .15s;border-left:2px solid transparent;user-select:none}
+.sb-item:hover{background:var(--surface2);color:var(--text)}
+.sb-item.active{background:var(--surface2);color:var(--text);border-left-color:var(--text);font-weight:500}
+.sb-item i{font-size:15px;flex-shrink:0}
+.sb-item .ct{margin-left:auto;font-size:10px;font-weight:500;padding:1px 6px;border-radius:10px;background:var(--surface3);color:var(--text2)}
+.sb-item .chev-small{margin-left:auto;font-size:13px;transition:transform .2s;color:var(--text3)}
+.sb-item .chev-small.open{transform:rotate(180deg)}
+.sb-sub{display:none;padding-left:.5rem}
+.sb-sub.open{display:block}
+.sb-sub .sb-item{font-size:12px;padding:5px 1rem 5px 1.25rem}
+.sb-footer{padding:.75rem 1rem;border-top:1px solid var(--border)}
+.sb-warn{background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--radius-sm);padding:7px 9px;font-size:10.5px;color:var(--amber-text);line-height:1.5;margin-bottom:7px}
+.sb-warn strong{display:block;margin-bottom:1px;font-size:11px}
+.sb-foot-btns{display:flex;gap:5px}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{display:flex;align-items:center;gap:10px;padding:.8rem 1.25rem;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.page-title{font-size:14.5px;font-weight:500;color:var(--text)}
+.content{flex:1;overflow-y:auto;padding:1.25rem}
+.page{display:none}.page.active{display:block}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;font-size:12.5px;font-weight:500;cursor:pointer;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;border:none}
+.btn i{font-size:14px}
+.btn-primary{background:var(--text);color:var(--bg)}
+.btn-primary:hover{opacity:.82}
+.btn-ghost{background:none;color:var(--text2);border:1px solid var(--border-med)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-danger{background:var(--red-bg);color:var(--red-text);border:1px solid var(--red-border)}
+.btn-success{background:var(--green-bg);color:var(--green-text);border:1px solid var(--green-border)}
+.btn-sm{padding:5px 10px;font-size:11.5px}
+.btn-sm i{font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── SEARCH ── */
+.search-wrap{position:relative;flex:1;max-width:300px}
+.search-wrap i{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text3);pointer-events:none}
+.search-input{width:100%;padding:7px 10px 7px 29px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-size:12.5px;font-family:'DM Sans',sans-serif}
+.search-input:focus{outline:none;border-color:var(--accent)}
+.view-toggle{display:flex;border:1px solid var(--border-med);border-radius:var(--radius-sm);overflow:hidden}
+.vbtn{padding:6px 11px;font-size:12px;cursor:pointer;background:var(--surface);color:var(--text2);border:none;font-family:'DM Sans',sans-serif;transition:all .15s}
+.vbtn.active{background:var(--surface2);color:var(--text);font-weight:500}
+
+/* ── STATS ── */
+.stats-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.stat-pill{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;cursor:pointer;transition:opacity .15s}
+.stat-pill:hover{opacity:.75}
+.sec-lbl{font-size:9.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin:1.2rem 0 .45rem;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.sub-lbl{font-size:11.5px;color:var(--text2);margin:7px 0 4px;font-weight:500}
+
+/* ── CARDS ── */
+.cards-list{display:flex;flex-direction:column;gap:4px}
+.card{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow);transition:border-color .15s;overflow:hidden}
+.card:hover{border-color:var(--border-med)}
+.card-face{display:flex;align-items:center;gap:9px;padding:10px 13px;cursor:pointer}
+.type-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.card-main{flex:1;min-width:0}
+.card-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-sub{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.card-meta{display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.clinks{display:flex;gap:4px;align-items:center}
+.clinks a{font-size:11px;color:var(--text3);text-decoration:none;display:flex;align-items:center;gap:2px;transition:color .12s}
+.clinks a:hover{color:var(--text)}
+.fu-chip{font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+.cal-badge{font-size:9.5px;padding:2px 5px;border-radius:7px;background:var(--green-bg);color:var(--green-text);font-weight:500;display:inline-flex;align-items:center;gap:2px}
+.chevron{font-size:14px;color:var(--text3);flex-shrink:0;transition:transform .2s}
+.chevron.open{transform:rotate(180deg)}
+.card-body{padding:0 13px 11px;display:none;border-top:1px solid var(--border)}
+.card-body.open{display:block}
+.blbl{font-size:9.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:2px;margin-top:8px}
+.btxt{font-size:12px;color:var(--text);line-height:1.55}
+.card-actions{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.rel-badge{font-size:9.5px;padding:2px 7px;border-radius:20px;font-weight:500;white-space:nowrap}
+.rel-new{background:#242420;color:#a6a69a}
+.rel-warm{background:var(--amber-bg);color:var(--amber-text)}
+.rel-strong{background:var(--green-bg);color:var(--green-text)}
+.rel-mentor{background:var(--judge-bg);color:var(--judge-text)}
+.no-res{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:13px}
+
+/* ── TYPE BARS (built dynamically for custom types) ── */
+.type-bar-judge{border-left:3px solid var(--judge-bar)}
+.type-bar-attorney{border-left:3px solid var(--atty-bar)}
+.type-bar-school{border-left:3px solid var(--school-bar)}
+.type-bar-professor{border-left:3px solid var(--prof-bar)}
+.type-bar-other{border-left:3px solid #6B7280}
+.type-bar-custom{border-left:3px solid var(--custom-bar)}
+
+/* ── FORMS ── */
+.fcard{background:var(--surface);border:1px solid var(--border-med);border-radius:var(--radius);padding:1.2rem;box-shadow:var(--shadow)}
+.fcard+.fcard{margin-top:.85rem}
+.ftitle{font-size:13.5px;font-weight:500;margin-bottom:.9rem;display:flex;align-items:center;gap:7px;color:var(--text)}
+.ftitle i{font-size:17px;color:var(--text2)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:8px;margin-bottom:8px}
+.fdiv{grid-column:1/-1;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:6px 0 3px;border-bottom:1px solid var(--border);margin-top:3px}
+.ff{display:flex;flex-direction:column;gap:3px}
+.ff.full{grid-column:1/-1}
+.ff label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--text2)}
+.ff input,.ff select,.ff textarea{width:100%;padding:6px 9px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-size:12.5px;font-family:'DM Sans',sans-serif;transition:border-color .15s}
+.ff textarea{resize:vertical;min-height:70px}
+.ff input:focus,.ff select:focus,.ff textarea:focus{outline:none;border-color:var(--accent)}
+.ffoot{display:flex;justify-content:flex-end;align-items:center;gap:7px;margin-top:.9rem;padding-top:.9rem;border-top:1px solid var(--border);flex-wrap:wrap}
+.fstatus{font-size:11.5px;display:flex;align-items:center;gap:4px;margin-right:auto;flex-wrap:wrap}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border-med);border-radius:var(--radius);padding:1.4rem;width:600px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md)}
+.modal-title{font-size:15px;font-weight:500;margin-bottom:1.1rem;display:flex;align-items:center;gap:8px}
+.modal-footer{display:flex;justify-content:flex-end;gap:7px;margin-top:1.1rem;padding-top:1.1rem;border-top:1px solid var(--border);align-items:center}
+.del-confirm{background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--radius-sm);padding:9px 11px;font-size:12px;color:var(--red-text);line-height:1.5;margin-top:8px;display:none}
+.del-confirm.show{display:block}
+
+/* ── PROMPT BOXES ── */
+.prompt-box{background:var(--surface2);border:1px solid var(--border-med);border-radius:var(--radius);padding:1.2rem;margin-top:.85rem}
+.steps{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem}
+.step{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--surface);border-radius:var(--radius-sm);border:1px solid var(--border);font-size:12px;color:var(--text2);line-height:1.5}
+.step-n{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--text);color:var(--bg);font-size:9.5px;font-weight:500;flex-shrink:0;margin-top:1px}
+
+/* ── HINT PILLS ── */
+.field-hints{display:flex;flex-wrap:wrap;gap:5px;margin-top:.65rem}
+.hint-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;background:var(--amber-bg);color:var(--amber-text);border:1px solid var(--amber-border)}
+.hint-pill i{font-size:12px}
+
+/* ── RECIPIENT DROPDOWN ── */
+.rec-wrap{position:relative;margin-bottom:.5rem}
+.rec-input{width:100%;padding:7px 10px 7px 30px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-size:12.5px;font-family:'DM Sans',sans-serif}
+.rec-input:focus{outline:none;border-color:var(--accent)}
+.rec-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text3);pointer-events:none}
+.rec-dd{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border-med);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);z-index:50;max-height:220px;overflow-y:auto;display:none;margin-top:2px}
+.rec-dd.open{display:block}
+.dd-item{padding:8px 11px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .12s}
+.dd-item:hover{background:var(--surface2)}
+.dd-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dd-name{font-weight:500;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-sub{font-size:10.5px;color:var(--text3);flex-shrink:0}
+.dd-empty{padding:10px 11px;font-size:12px;color:var(--text3)}
+.sel-recipients{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem}
+.sel-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;font-size:11.5px;font-weight:500;background:var(--atty-bg);color:var(--atty-text);border:1px solid transparent}
+.sel-chip button{background:none;border:none;cursor:pointer;color:var(--atty-text);display:flex;align-items:center;padding:0;opacity:.7;font-size:13px}
+.sel-chip button:hover{opacity:1}
+
+/* ── AUTO-FILL ── */
+.autofill-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:var(--green-text);background:var(--green-bg);border-radius:20px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+
+/* ── CAL SECTION ── */
+.cal-section{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;margin-top:.65rem;font-size:12px;color:var(--text2);display:flex;align-items:flex-start;gap:9px;line-height:1.5}
+.cal-section i{font-size:16px;flex-shrink:0;margin-top:1px;color:var(--text3)}
+
+/* ── SYNC PANEL ── */
+.sync-card{background:var(--surface2);border:1px solid var(--border-med);border-radius:var(--radius);padding:1.1rem;margin-bottom:.75rem}
+.sync-method{display:flex;align-items:center;gap:9px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:.5rem}
+.sync-method i{font-size:20px;color:var(--text3);flex-shrink:0}
+.sync-method-info{flex:1}
+.sync-method-title{font-size:12.5px;font-weight:500;color:var(--text)}
+.sync-method-sub{font-size:11px;color:var(--text3);line-height:1.4;margin-top:1px}
+.sync-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;white-space:nowrap}
+.sync-badge-best{background:var(--green-bg);color:var(--green-text)}
+.sync-badge-easy{background:var(--atty-bg);color:var(--atty-text)}
+.gist-input{width:100%;padding:6px 9px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Mono',monospace,sans-serif;margin-top:6px}
+.gist-input:focus{outline:none;border-color:var(--accent)}
+.gist-status{font-size:11px;margin-top:5px;min-height:16px;color:var(--text3)}
+
+/* ── IMPORT AREA ── */
+.import-area .ff textarea{min-height:100px;font-family:'DM Mono',monospace,sans-serif;font-size:11.5px;background:var(--surface2)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.4rem;right:1.4rem;background:var(--surface);border:1px solid var(--border-med);border-radius:var(--radius-sm);padding:9px 15px;font-size:12.5px;display:flex;align-items:center;gap:7px;box-shadow:var(--shadow-md);opacity:0;transition:opacity .2s;pointer-events:none;z-index:999;font-family:'DM Sans',sans-serif}
+.toast.show{opacity:1}
+.toast.ok{border-color:var(--green-border);color:var(--green-text)}
+.toast.err{border-color:var(--red-border);color:var(--red-text)}
+.toast.info{border-color:var(--border-med);color:var(--text2)}
+
+/* ── OAUTH / GCAL CONNECT ── */
+.gcal-connect-card{background:var(--surface2);border:1px solid var(--border-med);border-radius:var(--radius);padding:1.1rem;margin-bottom:.75rem}
+.gcal-connect-status{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:var(--radius-sm);font-size:12px;margin-top:.65rem}
+.gcal-connected{background:var(--green-bg);color:var(--green-text);border:1px solid var(--green-border)}
+.gcal-disconnected{background:var(--surface);color:var(--text2);border:1px solid var(--border-med)}
+.gcal-progress{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;margin-top:.65rem;font-size:12px;color:var(--text2)}
+.gcal-progress-bar{height:4px;background:var(--surface3);border-radius:2px;margin:.5rem 0;overflow:hidden}
+.gcal-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+
+/* ── MOBILE ── */
+@media(max-width:680px){.sidebar{display:none}.mobile-nav{display:flex!important}}
+.mobile-nav{display:none;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+.mn-item{flex:1;min-width:54px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 4px;font-size:9.5px;cursor:pointer;color:var(--text3);border:none;background:none;font-family:'DM Sans',sans-serif;transition:color .15s}
+.mn-item.active{color:var(--text)}
+.mn-item i{font-size:17px}
+.flash{animation:fl .7s ease}
+@keyframes fl{0%{border-color:var(--accent);background:var(--accent-bg)}100%{border-color:var(--border-med);background:var(--surface2)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-brand-name">Legal Directory</div>
+  </div>
+  <nav class="sb-nav">
+    <!-- Collapsible contacts section -->
+    <div class="sb-section">Contacts</div>
+    <div class="sb-item active" id="nav-all" onclick="toggleContactsMenu()">
+      <i class="ti ti-address-book"></i>All Contacts
+      <span class="ct" id="ct-total">0</span>
+      <i class="ti ti-chevron-down chev-small" id="contacts-chev"></i>
+    </div>
+    <div class="sb-sub" id="contacts-submenu">
+      <!-- populated by renderSidebar() -->
+    </div>
+
+    <div class="sb-section">Upcoming</div>
+    <div class="sb-item" onclick="goPage('reminders')" id="nav-reminders">
+      <i class="ti ti-bell"></i>Upcoming (1 week)<span class="ct" id="ct-fu"></span>
+    </div>
+
+    <div class="sb-section">Tools</div>
+    <div class="sb-item" onclick="goPage('add')" id="nav-add"><i class="ti ti-user-plus"></i>Add Contact (Manually)</div>
+    <div class="sb-item" onclick="goPage('update')" id="nav-update"><i class="ti ti-wand"></i>Easy-Add (Claude)</div>
+    <div class="sb-item" onclick="goPage('email')" id="nav-email"><i class="ti ti-mail"></i>Draft Email</div>
+
+
+
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-warn"><strong><i class="ti ti-alert-triangle" style="font-size:11px;vertical-align:-1px"></i> Local storage</strong>Data lives in this browser. Use Sync to back up.</div>
+    <div class="sb-foot-btns">
+      <button class="btn btn-ghost btn-sm" onclick="goPage('sync')" style="flex:1;justify-content:center" title="Sync &amp; Backup"><i class="ti ti-cloud"></i>Sync &amp; Backup</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav">
+  <button class="mn-item active" onclick="goPage('directory')" id="mnav-directory"><i class="ti ti-address-book"></i>Directory</button>
+  <button class="mn-item" onclick="goPage('reminders')" id="mnav-reminders"><i class="ti ti-bell"></i>Follow-ups</button>
+  <button class="mn-item" onclick="goPage('add')" id="mnav-add"><i class="ti ti-user-plus"></i>Add</button>
+  <button class="mn-item" onclick="goPage('update')" id="mnav-update"><i class="ti ti-wand"></i>Update</button>
+  <button class="mn-item" onclick="goPage('email')" id="mnav-email"><i class="ti ti-mail"></i>Email</button>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar" id="tb-directory">
+    <div class="page-title" id="dir-title">All Contacts</div>
+    <div class="search-wrap"><i class="ti ti-search"></i><input class="search-input" id="srch" type="text" placeholder="Search contacts, notes, regions…" oninput="renderDir()"></div>
+    <div class="view-toggle">
+      <button class="vbtn active" id="vd" onclick="setView('date')">By date</button>
+      <button class="vbtn" id="vr" onclick="setView('region')">By region</button>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="goPage('add')"><i class="ti ti-plus"></i>Add</button>
+  </div>
+  <div class="topbar" id="tb-reminders" style="display:none"><div class="page-title">Upcoming Follow-ups</div><button class="btn btn-ghost btn-sm" onclick="openCalSyncModal()" style="margin-left:auto"><i class="ti ti-calendar-plus"></i>Sync all to Google Calendar</button></div>
+  <div class="topbar" id="tb-add" style="display:none"><div class="page-title">Add Contact (Manually)</div></div>
+  <div class="topbar" id="tb-update" style="display:none"><div class="page-title">Easy-Add via Claude</div></div>
+  <div class="topbar" id="tb-email" style="display:none"><div class="page-title">Draft Email via Claude</div></div>
+  <div class="topbar" id="tb-sync" style="display:none"><div class="page-title">Sync &amp; Backup</div></div>
+
+  <div class="content">
+
+    <!-- DIRECTORY -->
+    <div class="page active" id="page-directory">
+      <div style="display:flex;gap:0;margin-bottom:1rem;border-bottom:1px solid var(--border)">
+        <button class="dir-tab active" id="dtab-contacts" onclick="setDirTab('contacts')" style="padding:7px 16px;font-size:12.5px;font-weight:500;cursor:pointer;background:none;border:none;color:var(--text);border-bottom:2px solid var(--text);font-family:'DM Sans',sans-serif;margin-bottom:-1px">All Contacts</button>
+        <button class="dir-tab" id="dtab-roles" onclick="setDirTab('roles')" style="padding:7px 16px;font-size:12.5px;font-weight:500;cursor:pointer;background:none;border:none;color:var(--text2);border-bottom:2px solid transparent;font-family:'DM Sans',sans-serif;margin-bottom:-1px">Manage Roles</button>
+      </div>
+      <div id="dir-contacts-panel">
+        <div class="stats-row" id="sbar"></div>
+        <div id="dircontent"></div>
+      </div>
+      <div id="dir-roles-panel" style="display:none">
+        <div class="fcard">
+          <div class="ftitle"><i class="ti ti-tags"></i>Contact roles &amp; types</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:1rem;line-height:1.6">Built-in roles cannot be deleted. Add custom roles to organize your network beyond the defaults. Custom roles appear everywhere: filters, forms, sidebar, and search.</p>
+          <div id="builtin-roles-list" style="margin-bottom:1rem"></div>
+          <div class="fdiv">Custom roles</div>
+          <div id="custom-roles-list" style="margin:.75rem 0"></div>
+          <div style="display:flex;gap:8px;margin-top:.5rem">
+            <input type="text" id="new-role-input" placeholder="New role name (e.g. Recruiter, Mentor, Alumni…)" style="flex:1;padding:6px 9px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-size:12.5px;font-family:'DM Sans',sans-serif" onkeydown="if(event.key==='Enter')addCustomRole()">
+            <button class="btn btn-primary btn-sm" onclick="addCustomRole()"><i class="ti ti-plus"></i>Add role</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REMINDERS -->
+    <div class="page" id="page-reminders">
+      <div id="reminders-content"></div>
+    </div>
+
+    <!-- ADD CONTACT -->
+    <div class="page" id="page-add">
+      <div class="fcard">
+        <div class="ftitle"><i class="ti ti-user-plus"></i>New contact</div>
+        <div class="fgrid">
+          <div class="fdiv">Basic info</div>
+          <div class="ff"><label for="fn">Name *</label><input id="fn" type="text" placeholder="Full name"></div>
+          <div class="ff"><label for="ft">Role/Type *</label>
+            <select id="ft"><option value="">Select…</option></select>
+          </div>
+          <div class="ff full"><label for="fr">Job title</label><input id="fr" type="text" placeholder="e.g. Partner, Mullen & Henzell LLP"></div>
+          <div class="ff"><label for="fg">Region / institution</label><input id="fg" type="text" placeholder="e.g. Santa Barbara, UCLA"></div>
+          <div class="fdiv">Contact info</div>
+          <div class="ff"><label for="fe">Email</label><input id="fe" type="email" placeholder="email@example.com"></div>
+          <div class="ff"><label for="fp">Phone</label><input id="fp" type="text" placeholder="Optional"></div>
+          <div class="ff full"><label for="fli">LinkedIn URL</label><input id="fli" type="text" placeholder="https://linkedin.com/in/…"></div>
+          <div class="fdiv">Background</div>
+          <div class="ff full"><label for="fc">How we connected</label><input id="fc" type="text" placeholder="e.g. DEI Law Panel, November 2025"></div>
+          <div class="ff full"><label for="fpa">Practice areas / focus</label><input id="fpa" type="text" placeholder="e.g. Civil litigation, Employment law"></div>
+          <div class="ff full"><label for="fnotes">Notes / bio</label><textarea id="fnotes" rows="4" placeholder="Paste anything — LinkedIn bio, business card, rough notes…"></textarea></div>
+          <div class="fdiv">Follow-up</div>
+          <div class="ff"><label for="fud">Follow-up date</label><input id="fud" type="date" onchange="checkCalOpt()"></div>
+          <div class="ff"><label for="fun">Follow-up note</label><input id="fun" type="text" placeholder="What to say / ask when you reach out"></div>
+        </div>
+        <div id="cal-option" style="display:none">
+          <div class="cal-section"><i class="ti ti-calendar-plus"></i><div><strong style="display:block;margin-bottom:2px;font-size:12px;color:var(--text)">Add to Google Calendar?</strong>Click below to open Google Calendar with this follow-up pre-filled.<div style="margin-top:7px"><button class="btn btn-ghost btn-sm" onclick="openGCal()"><i class="ti ti-external-link"></i>Open Google Calendar</button></div></div></div>
+        </div>
+        <div class="ffoot">
+          <span class="fstatus" id="fstat"></span>
+          <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
+          <button class="btn btn-primary" onclick="submitForm()"><i class="ti ti-plus"></i>Add to directory</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATE VIA CLAUDE -->
+    <div class="page" id="page-update">
+      <div class="fcard">
+        <div class="ftitle"><i class="ti ti-wand"></i>Easy-Add: paste rough notes, Claude parses them</div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:1rem;line-height:1.6">Paste rough notes, a LinkedIn bio, a business card, or a meeting recap. Generate a Claude prompt, paste it into Claude, paste Claude's JSON response back here to import the contact.</p>
+        <div class="ff full"><label for="raw-notes">Raw notes to parse</label><textarea id="raw-notes" rows="6" placeholder="e.g. Met Sarah Kim at UCLA law panel. 3L at UCLA Law, civil rights focus. skim@law.ucla.edu. Follow up in two weeks about shadowing."></textarea></div>
+        <div id="missing-hints" class="field-hints" style="display:none"></div>
+        <div class="ffoot">
+          <button class="btn btn-ghost btn-sm" onclick="checkMissingFields()"><i class="ti ti-checklist"></i>Check missing fields</button>
+          <button class="btn btn-primary" onclick="genUpdatePrompt()"><i class="ti ti-copy"></i>Generate &amp; copy Claude prompt</button>
+        </div>
+      </div>
+      <div class="prompt-box" id="update-prompt-box" style="display:none">
+        <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:.75rem">Follow these steps</div>
+        <div class="steps">
+          <div class="step"><span class="step-n">1</span>Prompt copied to clipboard. Open Claude chat and paste it in.</div>
+          <div class="step"><span class="step-n">2</span>Claude returns only a JSON object. Copy that entire response.</div>
+          <div class="step"><span class="step-n">3</span>Paste it below and click Import to add to your directory.</div>
+        </div>
+        <div class="import-area" style="margin-top:.85rem">
+          <div class="ff full"><label for="claude-json">Paste Claude's JSON response here</label><textarea id="claude-json" rows="9" placeholder='{"name":"Sarah Kim","type":"School","role":"3L, UCLA School of Law",...}'></textarea></div>
+          <div class="ffoot" style="margin-top:.75rem;padding-top:.75rem">
+            <span class="fstatus" id="import-stat"></span>
+            <button class="btn btn-primary" onclick="importFromClaude()"><i class="ti ti-user-plus"></i>Import contact</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMAIL DRAFTING -->
+    <div class="page" id="page-email">
+      <div class="fcard">
+        <div class="ftitle"><i class="ti ti-mail"></i>Draft emails via Claude</div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:1rem;line-height:1.6">Select contacts, set email type and tone, then add context for each recipient individually. Generate a prompt, paste into Claude, send from Gmail.</p>
+        <div class="fdiv" style="margin-bottom:.65rem">Select recipients</div>
+        <div class="rec-wrap">
+          <i class="ti ti-search rec-icon"></i>
+          <input class="rec-input" id="rec-search" type="text" placeholder="Type a name to search contacts…" oninput="filterRecDD()" onfocus="openRecDD()" autocomplete="off">
+          <div class="rec-dd" id="rec-dd"></div>
+        </div>
+        <div class="sel-recipients" id="sel-recs"></div>
+        <div class="fgrid" style="margin-top:.35rem">
+          <div class="ff"><label for="e-type">Email type</label>
+            <select id="e-type">
+              <option value="followup">Follow-up / check-in</option>
+              <option value="thankyou">Thank-you after meeting</option>
+              <option value="cold">Cold outreach (first contact)</option>
+              <option value="internship">Internship / opportunity request</option>
+              <option value="networking">Networking / coffee chat request</option>
+              <option value="scheduling">Scheduling / confirm meeting</option>
+              <option value="rec">Recommendation letter request</option>
+              <option value="reconnect">Reconnection / professional check-in</option>
+            </select>
+          </div>
+          <div class="ff"><label for="e-tone">Tone</label>
+            <select id="e-tone">
+              <option value="auto">Auto (inferred from contact)</option>
+              <option value="warm">Warm / networking</option>
+              <option value="formal">Formal / respectful</option>
+              <option value="casual">Casual (established rapport)</option>
+            </select>
+          </div>
+        </div>
+        <!-- Per-contact context section -->
+        <div id="per-contact-ctx" style="display:none;margin-top:.75rem">
+          <div class="fdiv" style="margin-bottom:.65rem">Email context — per recipient</div>
+          <p style="font-size:11.5px;color:var(--text3);margin-bottom:.75rem;line-height:1.5">Set what each individual email is about. The shared context below applies to all recipients.</p>
+          <div id="per-contact-ctx-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:.75rem"></div>
+          <div class="fdiv" style="margin-bottom:.65rem">Shared context (applies to all)</div>
+          <div class="fgrid">
+            <div class="ff full"><label for="e-context">Additional context / prior thread</label><textarea id="e-context" rows="2" placeholder="e.g. Last spoke May 2026. Met at the Santa Barbara Bar event."></textarea></div>
+          </div>
+        </div>
+        <!-- Single-contact context (shown when only 1 recipient) -->
+        <div id="single-contact-ctx" style="margin-top:.35rem">
+          <div class="fgrid">
+            <div class="ff full">
+              <label for="e-goal">What this email is about <span id="autofill-indicator" class="autofill-badge" style="display:none"><i class="ti ti-sparkles" style="font-size:10px"></i>Auto-filled</span></label>
+              <textarea id="e-goal" rows="3" placeholder="e.g. Thanking them for the coffee chat, following up about summer opportunities…"></textarea>
+            </div>
+            <div class="ff full"><label for="e-context-single">Additional context / prior thread</label><textarea id="e-context-single" rows="2" placeholder="e.g. He referred me to the UCLA student ambassador. Last spoke May 2026."></textarea></div>
+          </div>
+        </div>
+        <div class="ffoot">
+          <span class="fstatus" id="email-stat"></span>
+          <button class="btn btn-primary" id="draft-btn" onclick="draftEmailsWithAI()"><i class="ti ti-sparkles"></i>Draft &amp; Open in Gmail</button>
+          <button class="btn btn-ghost" onclick="genEmailPromptOnly()"><i class="ti ti-copy"></i>Copy prompt only</button>
+        </div>
+      </div>
+      <div class="prompt-box" id="email-prompt-box" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
+          <div id="ai-draft-spinner" style="display:none"><i class="ti ti-loader-2" style="font-size:16px;animation:spin 1s linear infinite;color:var(--accent)"></i></div>
+          <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3)" id="draft-status-lbl">Drafting your emails…</div>
+        </div>
+        <div id="gmail-compose-links" style="display:flex;flex-direction:column;gap:6px"></div>
+        <div style="margin-top:.85rem;border-top:1px solid var(--border);padding-top:.75rem">
+          <div style="font-size:10.5px;color:var(--text3);margin-bottom:.5rem">Or paste Claude's response manually:</div>
+          <div class="ff full">
+            <textarea id="claude-email-response" rows="6" placeholder="Paste Claude's full response here (with TO:, SUBJECT:, BODY: sections)…" oninput="parseClaudeEmailResponse()"></textarea>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:.65rem;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="parseAndOpenGmail()"><i class="ti ti-brand-gmail"></i>Open Gmail from pasted response</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('claude-email-response').value='';document.getElementById('gmail-compose-links').innerHTML=''">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYNC & BACKUP -->
+    <div class="page" id="page-sync">
+      <div class="fcard">
+        <div class="ftitle"><i class="ti ti-calendar-event"></i>Google Calendar</div>
+        <div class="sync-card">
+          <div class="sync-method">
+            <i class="ti ti-calendar-check"></i>
+            <div class="sync-method-info">
+              <div class="sync-method-title">One-click Google Calendar links</div>
+              <div class="sync-method-sub">No sign-in required. Each follow-up opens a pre-filled Calendar event.</div>
+            </div>
+            <span class="sync-badge sync-badge-easy">No auth needed</span>
+          </div>
+          <p style="font-size:11.5px;color:var(--text2);line-height:1.6;margin-top:.5rem">
+            Use the <strong style="color:var(--text)">Add to Calendar</strong> button on any contact card, or use <strong style="color:var(--text)">Sync all to Google Calendar</strong> on the Follow-ups page to open individual links. Each event includes a 1-day-prior reminder note in the description.
+          </p>
+        </div>
+      </div>
+
+      <div class="fcard">
+        <div class="ftitle"><i class="ti ti-cloud"></i>Sync &amp; backup options</div>
+
+        <!-- Option 1: GitHub Gist -->
+        <div class="sync-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:.6rem">
+            <div class="sync-method" style="flex:1;margin:0">
+              <i class="ti ti-brand-github"></i>
+              <div class="sync-method-info">
+                <div class="sync-method-title">GitHub Gist sync</div>
+                <div class="sync-method-sub">Store your contacts as a private GitHub Gist.</div>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:.65rem">
+            <strong style="color:var(--text);display:block;margin-bottom:3px">Setup (one time):</strong>
+            1. Go to <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--accent-text)">github.com/settings/tokens</a> → Generate new token (classic)<br>
+            2. Give it a name, select only the <strong style="color:var(--text)">gist</strong> scope, generate<br>
+            3. Copy the token and paste it below — it is stored only in this browser
+          </div>
+          <input class="gist-input" id="gist-token" type="password" placeholder="Paste your GitHub personal access token here…" oninput="saveGistToken()">
+          <div style="display:flex;gap:6px;margin-top:.6rem;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="gistPush()"><i class="ti ti-upload"></i>Push to Gist</button>
+            <button class="btn btn-ghost btn-sm" onclick="gistPull()"><i class="ti ti-download"></i>Pull from Gist</button>
+            <button class="btn btn-ghost btn-sm" onclick="showGistId()"><i class="ti ti-link"></i>View Gist ID</button>
+          </div>
+          <div class="gist-status" id="gist-status"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- end .content -->
+</main>
+</div><!-- end .shell -->
+
+<!-- CALENDAR SYNC MODAL -->
+<div class="modal-overlay" id="cal-sync-modal">
+  <div class="modal" style="width:540px">
+    <div class="modal-title"><i class="ti ti-calendar-plus" style="font-size:17px"></i>Sync Follow-ups to Google Calendar</div>
+    <p id="cal-sync-desc" style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:1rem">Click each link to open Google Calendar with the event pre-filled. Connect Google Calendar on the Sync page for one-click silent creation.</p>
+    <div id="cal-sync-progress" style="display:none" class="gcal-progress">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span id="cal-sync-progress-label">Creating events…</span>
+        <span id="cal-sync-progress-count" style="color:var(--text3)"></span>
+      </div>
+      <div class="gcal-progress-bar"><div class="gcal-progress-fill" id="cal-sync-progress-fill" style="width:0%"></div></div>
+    </div>
+    <div id="cal-sync-list" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary btn-sm" id="cal-sync-all-btn" onclick="gcalSyncAll()" style="display:none"><i class="ti ti-calendar-plus"></i>Add All to Calendar</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('cal-sync-modal').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-edit" style="font-size:17px"></i>Edit Contact</div>
+    <div class="fgrid">
+      <div class="fdiv">Basic info</div>
+      <div class="ff"><label for="ef-name">Name</label><input id="ef-name" type="text"></div>
+      <div class="ff"><label for="ef-type">Role/Type</label><select id="ef-type"></select></div>
+      <div class="ff full"><label for="ef-role">Job title</label><input id="ef-role" type="text"></div>
+      <div class="ff"><label for="ef-region">Region / institution</label><input id="ef-region" type="text"></div>
+      <div class="fdiv">Contact info</div>
+      <div class="ff"><label for="ef-email">Email</label><input id="ef-email" type="email"></div>
+      <div class="ff"><label for="ef-phone">Phone</label><input id="ef-phone" type="text"></div>
+      <div class="ff full"><label for="ef-linkedin">LinkedIn URL</label><input id="ef-linkedin" type="text"></div>
+      <div class="fdiv">Background</div>
+      <div class="ff full"><label for="ef-connected">How we connected</label><input id="ef-connected" type="text"></div>
+      <div class="ff full"><label for="ef-practice">Practice areas</label><input id="ef-practice" type="text"></div>
+      <div class="ff full"><label for="ef-notes">Notes</label><textarea id="ef-notes" rows="4"></textarea></div>
+      <div class="fdiv">Communication history</div>
+      <div class="ff"><label for="ef-lastcontact">Last contacted</label><input id="ef-lastcontact" type="date"></div>
+      <div class="ff"><label for="ef-emailcount">Emails sent</label><input id="ef-emailcount" type="number" min="0" placeholder="0"></div>
+      <div class="ff full"><label for="ef-lastnote">Last interaction note</label><input id="ef-lastnote" type="text" placeholder="e.g. Coffee chat May 2026, discussed corporate law path"></div>
+      <div class="fdiv">Follow-up</div>
+      <div class="ff"><label for="ef-fudate">Follow-up date</label><input id="ef-fudate" type="date"></div>
+      <div class="ff"><label for="ef-funote">Follow-up note</label><input id="ef-funote" type="text"></div>
+    </div>
+    <div class="del-confirm" id="del-confirm">
+      <strong>Delete this contact?</strong> This is permanent.
+      <div style="display:flex;gap:7px;margin-top:7px">
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete()"><i class="ti ti-trash"></i>Yes, delete</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('del-confirm').classList.remove('show')">Cancel</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="document.getElementById('del-confirm').classList.add('show')"><i class="ti ti-trash"></i>Delete</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()"><i class="ti ti-check"></i>Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN GATE -->
+<div id="pin-gate" style="position:fixed;inset:0;z-index:99999;background:#0f1117;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0">
+  <div style="background:#1c1c19;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:2.2rem 2.4rem;width:320px;box-shadow:0 8px 40px rgba(0,0,0,0.6)">
+    <div style="font-family:'DM Serif Display',serif;font-size:20px;color:#eeeee6;margin-bottom:4px;text-align:center">Legal Directory</div>
+    <div style="font-size:11.5px;color:#646458;text-align:center;margin-bottom:1.6rem;letter-spacing:.03em">Enter your PIN to continue</div>
+    <input id="pin-input" type="password" inputmode="numeric" maxlength="12" placeholder="PIN" autocomplete="off"
+      style="width:100%;padding:10px 13px;border:1px solid rgba(255,255,255,0.12);border-radius:8px;background:#222220;color:#eeeee6;font-size:16px;font-family:'DM Sans',sans-serif;text-align:center;letter-spacing:.2em;margin-bottom:.7rem;outline:none"
+      onkeydown="if(event.key==='Enter')checkPin()">
+    <button onclick="checkPin()" style="width:100%;padding:10px;background:#eeeee6;color:#131310;border:none;border-radius:8px;font-size:13.5px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Unlock</button>
+    <div id="pin-error" style="font-size:11.5px;color:#F7C1C1;text-align:center;margin-top:.6rem;min-height:16px"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// PIN GATE
+// ═══════════════════════════════════════════════════════
+const PIN_HASH = '782e82d6a0037600c1a26b3f3634e2bbd911c00709a471e41f73322af97e94f4';
+
+(function initPinGate(){
+  if(sessionStorage.getItem('ld_auth')==='1'){
+    var g=document.getElementById('pin-gate');if(g)g.style.display='none';
+    return;
+  }
+  // Gate remains visible; input focus
+  setTimeout(function(){var p=document.getElementById('pin-input');if(p)p.focus();},100);
+})();
+
+async function checkPin(){
+  var val=document.getElementById('pin-input').value;
+  if(!val){document.getElementById('pin-error').textContent='Enter your PIN.';return;}
+  var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(val));
+  var hex=Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  if(hex===PIN_HASH){
+    sessionStorage.setItem('ld_auth','1');
+    var g=document.getElementById('pin-gate');
+    if(g){g.style.transition='opacity .35s';g.style.opacity='0';setTimeout(function(){g.style.display='none';},350);}
+    // Auto-pull from Gist on unlock
+    autoGistPull();
+  } else {
+    document.getElementById('pin-error').textContent='Incorrect PIN.';
+    document.getElementById('pin-input').value='';
+    document.getElementById('pin-input').focus();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// CONSTANTS — v8 permanent storage keys
+// ═══════════════════════════════════════════════════════
+const SK = 'legal_dir_contacts';
+const SK_ROLES = 'legal_dir_roles';
+const SK_GIST = 'legal_dir_gist_token';
+const SK_GIST_ID = 'legal_dir_gist_id';
+const SK_GCAL_TOKEN = 'legal_dir_gcal_token';
+const SK_GCAL_EXPIRY = 'legal_dir_gcal_expiry';
+
+// ═══════════════════════════════════════════════════════
+// ONE-TIME STORAGE MIGRATION (v5 → v8 keys)
+// ═══════════════════════════════════════════════════════
+function migrateStorage(){
+  var oldKeys={contacts:'legal_dir_v5',roles:'legal_dir_v5_roles',gist:'legal_dir_v5_gist',gistId:'legal_dir_v5_gist_id'};
+  var migrated=false;
+  if(!localStorage.getItem(SK)&&localStorage.getItem(oldKeys.contacts)){
+    localStorage.setItem(SK,localStorage.getItem(oldKeys.contacts));
+    localStorage.removeItem(oldKeys.contacts);migrated=true;
+  }
+  if(!localStorage.getItem(SK_ROLES)&&localStorage.getItem(oldKeys.roles)){
+    localStorage.setItem(SK_ROLES,localStorage.getItem(oldKeys.roles));
+    localStorage.removeItem(oldKeys.roles);migrated=true;
+  }
+  if(!localStorage.getItem(SK_GIST)&&localStorage.getItem(oldKeys.gist)){
+    localStorage.setItem(SK_GIST,localStorage.getItem(oldKeys.gist));
+    localStorage.removeItem(oldKeys.gist);migrated=true;
+  }
+  if(!localStorage.getItem(SK_GIST_ID)&&localStorage.getItem(oldKeys.gistId)){
+    localStorage.setItem(SK_GIST_ID,localStorage.getItem(oldKeys.gistId));
+    localStorage.removeItem(oldKeys.gistId);migrated=true;
+  }
+  if(migrated)console.log('[v8] Storage migrated from v5 keys to v8 keys.');
+}
+
+const BUILTIN_TYPES = ['Judge','Attorney','School','Professor','Other'];
+
+// ═══════════════════════════════════════════════════════
+// WRITING STYLE (injected into all email prompts)
+// ═══════════════════════════════════════════════════════
+const STYLE_GUIDE = `MY WRITING STYLE — follow every rule exactly, no exceptions:
+
+GREETINGS:
+- Judges/professors, formal first contact: "Dear [Title] [Last Name],"
+- Attorneys/professionals I have met: "Hello [First Name]," or "Dear [First Name],"
+- After established rapport (second email onward): "Hi [First Name],"
+- Formal cold outreach, unknown professional: "Dear Mr./Ms. [Last Name],"
+
+SIGN-OFFS:
+- Default: "Best regards,\nKaden Huynh"
+- Formal first contact or law school admissions: "Best regards,\nKaden Huynh\nUniversity of California, Santa Barbara"
+- After meeting in person: "Warm regards,\nKaden Huynh"
+- Brief replies: "Best,\nKaden Huynh" or "Regards,\nKaden Huynh"
+- NEVER: "Sincerely" alone, "Thanks" as sign-off, "Kind regards"
+
+TONE:
+- Opens with "I hope you are doing well." — NEVER "I hope this email finds you well."
+- Gets to the point in 1-2 sentences. No wind-up.
+- Short paragraphs, 2-4 sentences each. No walls of text.
+- Confident but genuinely humble. Warm but professionally grounded.
+- Real gratitude without overdoing it.
+
+ABSOLUTE FORBIDDEN — never use any of these under any circumstances:
+- Em dashes (—) anywhere in the email, ever
+- "I hope this email finds you well"
+- "I wanted to reach out to" as an opener
+- "Please don't hesitate"
+- "Moving forward"
+- "Kind regards"
+- Bullet points, bold, or headers inside the email body
+- Ellipses to trail off
+- Rhetorical questions
+- Corporate buzzwords or AI-sounding phrasing
+
+PATTERNS BY TYPE:
+- Follow-up (ONLY if prior email confirmed in database): "I hope you are doing well. I just wanted to follow up on my previous email in case it got buried in your inbox."
+- Follow-up (NO prior email — first outreach): Do NOT imply a prior email exists. Draft as a genuine first outreach email.
+- Thank-you after meeting: thanks for time + one specific detail from the meeting + forward-looking line
+- Cold outreach: brief intro (name, year, school, major) + why THIS specific person + concise ask (3 short paragraphs max)
+- Scheduling: offer multiple times, defer to their schedule
+- Referrals: always thank the introducer by name
+
+LENGTH:
+- Cold outreach: 3 short paragraphs max
+- Follow-ups: 2-3 sentences
+- Thank-yous: 3-4 short paragraphs
+- Never repeat the same sentiment twice`;
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+var contacts = [];
+var customTypes = [];
+var nextId = 1;
+var view = 'date';
+var typeFilter = null;
+var editingId = null;
+var selectedRecipients = [];
+var contactsMenuOpen = false;
+
+// ═══════════════════════════════════════════════════════
+// DEFAULT DATA
+// ═══════════════════════════════════════════════════════
+const DEFAULT_CONTACTS = [
+  {id:1,name:"George Eskin",type:"Judge",role:"Judge (Ret.) / Mediator",region:"Santa Barbara",email:"geskin55@gmail.com",phone:"",linkedin:"",connected:"DEI Law Panel, November 2025",practice:"Mediation, Civil litigation",rel:"mentor",notes:"Retired Superior Court judge appointed by Gov. Gray Davis in 2003. UCLA Law grad (1965). Founded Santa Barbara Veterans Treatment Court. PA announcer for UCSB women's basketball. Key hub of the network.",fuDate:"",fuNote:"",lastContact:"",emailCount:0,lastNote:"",calId:""},
+  {id:2,name:"Von Deroian",type:"Judge",role:"Santa Barbara Superior Court Judge",region:"Santa Barbara",email:"vderoian@sb.courts.org",phone:"",linkedin:"",connected:"Through Judge George Eskin",practice:"Criminal, Civil",rel:"warm",notes:"Santa Barbara College of Law grad (2006). Deputy District Attorney 2006-2017 before appointment to the bench.",fuDate:"",fuNote:"",lastContact:"",emailCount:0,lastNote:"",calId:""},
+  {id:3,name:"Julius Abanise",type:"Attorney",role:"Senior Deputy County Counsel, Santa Barbara County",region:"Santa Barbara",email:"julius2011@gmail.com",phone:"",linkedin:"",connected:"DEI Law Panel, November 2025",practice:"County counsel, Public law",rel:"warm",notes:"Loyola Law School LA, admitted 2011. Co-chairs SB chapter of California Unity Bar Association with Beatriz Flores.",fuDate:"",fuNote:"",lastContact:"",emailCount:0,lastNote:"",calId:""},
+  {id:4,name:"Beatriz Flores",type:"Attorney",role:"Solo Practitioner, Law Office of Beatriz P. Flores PC",region:"Santa Barbara",email:"beatriz@805law.net",phone:"",linkedin:"",connected:"DEI Law Panel, November 2025",practice:"Family law, Employment, Criminal defense",rel:"warm",notes:"UCSB undergrad, Quinnipiac JD (1992). Bilingual Spanish. Co-chairs California Unity Bar Association SB chapter.",fuDate:"",fuNote:"",lastContact:"",emailCount:0,lastNote:"",calId:""},
+  {id:5,name:"Diana Lytel",type:"Attorney",role:"Senior Counsel, Klein DeNatale Goldner",region:"Santa Barbara",email:"dlytel@kleinlaw.com",phone:"",linkedin:"",connected:"DEI Law Panel, November 2025",practice:"General litigation, Professional liability",rel:"warm",notes:"Super Lawyers 11 consecutive years, AV Preeminent 5.0. SB Women Lawyers Attorney of the Year 2024.",fuDate:"",fuNote:"",lastContact:"",emailCount:0,lastNote:"",calId:""},
+  {id:6,name:"Rafael Gonzalez",type:"Attorney",role:"Partner, Mullen & Henzell — Civil Litigation",region:"Santa Barbara",email:"RGonzalez@mullenlaw.com",phone:"",linkedin:"",connected:"Through Judge George Eskin",practice:"Employment, Complex litigation",rel:"strong",notes:"UCSB undergrad (1996), JD University of Arizona (2000). Former NLRB attorney. Bilingual. UCSB employment law instructor 2005-2018.",fuDate:"2026-08-01",fuNote:"Follow up about legal opportunities in winter/spring",lastContact:"2026-05-15",emailCount:3,lastNote:"Coffee chat May 2026. Very generous with time.",calId:""},
+  {id:7,name:"Diego Ochoa",type:"Attorney",role:"Associate, Mullen & Henzell — Employment & Labor",region:"Santa Barbara",email:"dochoa@mullenlaw.com",phone:"",linkedin:"",connected:"Coffee chat with Rafael Gonzalez",practice:"Employment, Labor",rel:"warm",notes:"Associate at Mullen & Henzell. Met through coffee chat with Rafael Gonzalez in May 2026.",fuDate:"2026-08-01",fuNote:"Follow up about legal opportunities in winter/spring",lastContact:"2026-05-15",emailCount:1,lastNote:"Met at coffee with Rafael Gonzalez.",calId:""},
+  {id:8,name:"Tom Jevens",type:"Attorney",role:"Retired Corporate Lawyer / Former In-house Counsel, Google",region:"Santa Barbara",email:"jevenst@gmail.com",phone:"",linkedin:"",connected:"Through Natalie Liang, UCSB Pre-law Mentorship Program",practice:"Corporate, In-house, Tech",rel:"warm",notes:"Retired corporate attorney, former in-house counsel at Google. Great perspective on big tech and corporate law paths.",fuDate:"",fuNote:"",lastContact:"",emailCount:0,lastNote:"",calId:""},
+  {id:9,name:"Cameron Goodman",type:"Attorney",role:"Partner, Price Postel & Parma LLP",region:"Santa Barbara",email:"cgoodman@ppplaw.com",phone:"406 581 6424",linkedin:"",connected:"Cold email",practice:"Real estate, Environmental, Estate planning",rel:"warm",notes:"Partner since January 2023. UCLA Law, Occidental College BA cum laude.",fuDate:"2026-08-01",fuNote:"Follow up about legal opportunities in winter/spring",lastContact:"2026-05-10",emailCount:2,lastNote:"Phone call May 2026. Strong advice on LSAT strategy.",calId:""},
+  {id:10,name:"Alex Mefford",type:"Attorney",role:"Associate, Fauver Large Archbald & Spray",region:"Santa Barbara",email:"amefford@flasllp.com",phone:"805 233 1120",linkedin:"",connected:"Cold email",practice:"Business/corporate, Employment, Civil litigation",rel:"warm",notes:"Associate at FLAS. Chapman University Fowler School of Law grad.",fuDate:"2026-08-01",fuNote:"Follow up about legal opportunities in winter/spring",lastContact:"2026-05-08",emailCount:2,lastNote:"Phone call May 2026. Suggested moot court.",calId:""},
+  {id:11,name:"Lisa Rodriguez",type:"Judge",role:"Judge / Jurist-in-Residence, USD School of Law",region:"San Diego",email:"Lisa.Rodriguez@sdcourt.ca.gov",phone:"",linkedin:"",connected:"Through Judge George Eskin",practice:"Criminal, Evidence",rel:"strong",notes:"Appointed to San Diego Superior Court by Gov. Jerry Brown (2015). Deputy DA for 17 years. JD from USD (1995).",fuDate:"2026-06-23",fuNote:"Let her know you'll be in San Diego in August and ask about shadowing",lastContact:"2026-05-20",emailCount:2,lastNote:"Zoom call May 2026. Offered to connect to civil/corporate contacts.",calId:""},
+  {id:12,name:"Judy Bae",type:"Judge",role:"San Diego Superior Court Judge",region:"San Diego",email:"Judy.Bae@sdcourt.ca.gov",phone:"619 450 7499",linkedin:"",connected:"Through Judge Lisa Rodriguez",practice:"Civil, Trust litigation",rel:"warm",notes:"Appointed by Gov. Newsom (2019). JD USD (2002). Former president, Pan Asian Lawyers of San Diego.",fuDate:"",fuNote:"",lastContact:"2026-05-21",emailCount:1,lastNote:"Phone call May 2026. Civil law focus. Very approachable.",calId:""},
+  {id:13,name:"Heather Rosing",type:"Attorney",role:"Founding Partner, Rosing Pott & Strohbehn",region:"San Diego",email:"hrosing@rosinglaw.com",phone:"619 990 5566",linkedin:"",connected:"Through Judge George Eskin",practice:"Legal malpractice, Professional liability",rel:"strong",notes:"Certified Specialist in Legal Malpractice. #1 SuperLawyer in San Diego 2024-2025. Lawyer of the Decade, Daily Journal (2021).",fuDate:"2026-08-01",fuNote:"Follow up about internship at her firm summer 2027",lastContact:"2026-05-19",emailCount:2,lastNote:"Phone call May 2026. Offered to circulate resume in San Diego.",calId:""},
+  {id:14,name:"Robert Schwartz",type:"School",role:"Dean of Admissions, UCLA School of Law",region:"UCLA School of Law",email:"schwartzr@law.ucla.edu",phone:"",linkedin:"",connected:"UCSB Law Admissions Panel, April 2025",practice:"Law school admissions",rel:"strong",notes:"Dean of Admissions at UCLA Law. Warm relationship is a meaningful advantage in the application cycle.",fuDate:"2026-08-01",fuNote:"Let him know you're applying to UCLA and would love to arrange a tour",lastContact:"2026-04-15",emailCount:2,lastNote:"Met at UCSB panel April 2025. Connected to Christian Rodriguez.",calId:""},
+  {id:15,name:"Christian Rodriguez",type:"School",role:"Student Ambassador / UCSB Alumni, UCLA School of Law",region:"UCLA School of Law",email:"studentambassador4@law.ucla.edu",phone:"",linkedin:"",connected:"UCLA Law Student Ambassadors program",practice:"Law school pipeline",rel:"warm",notes:"UCLA Law student ambassador and UCSB alumnus. Great perspective on UCLA Law culture.",fuDate:"",fuNote:"",lastContact:"2026-04-20",emailCount:1,lastNote:"Zoom call April 2026. 7Sage LSAT recommendation.",calId:""},
+  {id:16,name:"David Kirschner",type:"School",role:"Associate Dean of Admissions, USC Gould School of Law",region:"USC Gould School of Law",email:"dkirschner@law.usc.edu",phone:"",linkedin:"",connected:"UCSB Law Admissions Panel, April 2025",practice:"Law school admissions",rel:"strong",notes:"Associate Dean of Admissions at USC Gould. Met at UCSB admissions panel alongside Robert Schwartz.",fuDate:"2026-08-01",fuNote:"Let him know you're applying to USC and would love to arrange a tour",lastContact:"2026-05-12",emailCount:2,lastNote:"Introduced to Professor Jimenez.",calId:""},
+  {id:17,name:"Felipe Jimenez",type:"School",role:"Associate Professor of Law and Philosophy, USC Gould",region:"USC Gould School of Law",email:"fjimenez@law.usc.edu",phone:"",linkedin:"",connected:"Through David Kirschner",practice:"Law and philosophy, Jurisprudence",rel:"warm",notes:"Co-Director, USC Center for Law and Philosophy. Won 2025 AALS Jurisprudence Article Award.",fuDate:"",fuNote:"",lastContact:"2026-05-14",emailCount:1,lastNote:"Zoom call May 2026. Recommended Law's Empire by Dworkin.",calId:""},
+  {id:18,name:"Michael Chasalow",type:"School",role:"Clinical Professor & Director, Small Business Clinic, USC Gould",region:"USC Gould School of Law",email:"mchasalow@law.usc.edu",phone:"",linkedin:"",connected:"Through Felipe Jimenez",practice:"Business law, Entrepreneurship",rel:"warm",notes:"Founder of USC Small Business Clinic (~3,000 clients). JD UC Berkeley, MBA UCLA.",fuDate:"2026-08-01",fuNote:"Let him know you're applying to USC and would love to chat",lastContact:"",emailCount:0,lastNote:"",calId:""},
+  {id:19,name:"Tae Yeoun Keum",type:"Professor",role:"Political Theory Professor, UCSB",region:"UCSB",email:"keum@ucsb.edu",phone:"",linkedin:"",connected:"UCSB professor",practice:"Political theory, Philosophy",rel:"strong",notes:"Writing a letter of recommendation. Key relationship for law school applications.",fuDate:"2026-06-16",fuNote:"Follow up about letter of recommendation — ask what materials she needs",lastContact:"2026-05-01",emailCount:3,lastNote:"Discussed rec letter. She agreed. Sent transcript and resume.",calId:""},
+  {id:20,name:"Laurie Freeman",type:"Professor",role:"Japanese Politics Professor, UCSB Political Science",region:"UCSB",email:"lfreeman@polsci.ucsb.edu",phone:"",linkedin:"",connected:"UCSB professor",practice:"Political science, Japan studies",rel:"strong",notes:"Writing a letter of recommendation. Key relationship for law school applications.",fuDate:"2026-06-16",fuNote:"Follow up about letter of recommendation — ask what materials she needs",lastContact:"2026-04-28",emailCount:2,lastNote:"Confirmed she would write the rec letter.",calId:""}
+];
+
+// ═══════════════════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════════════════
+function load(){
+  migrateStorage();
+  try{var s=localStorage.getItem(SK);if(s)contacts=JSON.parse(s);}catch(e){}
+  if(!contacts.length)contacts=JSON.parse(JSON.stringify(DEFAULT_CONTACTS));
+  try{var r=localStorage.getItem(SK_ROLES);if(r)customTypes=JSON.parse(r);}catch(e){}
+  try{var gt=localStorage.getItem(SK_GIST);if(gt)document.getElementById('gist-token').value=gt;}catch(e){}
+  nextId=contacts.length?Math.max.apply(null,contacts.map(function(c){return c.id||0;}))+1:21;
+  updateFUCount();
+  gcalInitUI();
+}
+function save(){
+  try{localStorage.setItem(SK,JSON.stringify(contacts));}catch(e){}
+  autoGistPush();
+}
+function saveRoles(){try{localStorage.setItem(SK_ROLES,JSON.stringify(customTypes));}catch(e){}}
+function saveGistToken(){try{localStorage.setItem(SK_GIST,document.getElementById('gist-token').value);}catch(e){}}
+
+// ─── AUTO GIST SYNC ───────────────────────────────────
+var _autoPushTimer=null;
+function autoGistPush(){
+  // Debounce: wait 1.5s after last save before pushing
+  clearTimeout(_autoPushTimer);
+  _autoPushTimer=setTimeout(function(){
+    var token=getGistToken();
+    if(!token)return; // silently skip if no token configured
+    _silentGistPush();
+  },1500);
+}
+
+async function _silentGistPush(){
+  var token=getGistToken();if(!token)return;
+  var data=JSON.stringify({version:5,exported:new Date().toISOString(),contacts:contacts,customTypes:customTypes},null,2);
+  var gistId=localStorage.getItem(SK_GIST_ID)||'';
+  try{
+    var url=gistId?'https://api.github.com/gists/'+gistId:'https://api.github.com/gists';
+    var method=gistId?'PATCH':'POST';
+    var body={description:'Legal Directory Backup — '+new Date().toISOString().split('T')[0],public:false,files:{'legal_directory.json':{content:data}}};
+    var resp=await fetch(url,{method:method,headers:{'Authorization':'token '+token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!resp.ok)return; // silently fail auto-push
+    var result=await resp.json();
+    localStorage.setItem(SK_GIST_ID,result.id);
+    setGistStatus('Auto-synced at '+new Date().toLocaleTimeString(),'');
+  }catch(e){/* silent fail */}
+}
+
+async function autoGistPull(){
+  var token=getGistToken();var gistId=localStorage.getItem(SK_GIST_ID)||'';
+  if(!token||!gistId)return; // no token or no gist yet — skip silently
+  try{
+    var resp=await fetch('https://api.github.com/gists/'+gistId,{headers:{'Authorization':'token '+token}});
+    if(!resp.ok)return;
+    var result=await resp.json();
+    var content=result.files['legal_directory.json'].content;
+    var data=JSON.parse(content);
+    // Only update if remote has more contacts or was exported more recently
+    var remoteContacts=data.contacts||[];
+    if(remoteContacts.length>=contacts.length){
+      contacts=remoteContacts;
+      if(data.customTypes)customTypes=data.customTypes;
+      nextId=contacts.length?Math.max.apply(null,contacts.map(function(c){return c.id||0;}))+1:1;
+      try{localStorage.setItem(SK,JSON.stringify(contacts));}catch(e){}
+      saveRoles();updateFUCount();populateTypeSelects();renderSidebar();renderDir();
+      setGistStatus('Auto-pulled '+contacts.length+' contacts at '+new Date().toLocaleTimeString(),'');
+    }
+  }catch(e){/* silent fail */}
+}
+function saveRoles(){try{localStorage.setItem(SK_ROLES,JSON.stringify(customTypes));}catch(e){}}
+function saveGistToken(){try{localStorage.setItem(SK_GIST,document.getElementById('gist-token').value);}catch(e){}}
+function updateFUCount(){
+  var n=contacts.filter(function(c){return c.fuDate&&daysDiff(c.fuDate)>=0&&daysDiff(c.fuDate)<=7;}).length;
+  var el=document.getElementById('ct-fu');if(el)el.textContent=n||'';
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+function toast(msg,type,dur){
+  var t=document.getElementById('toast');
+  t.innerHTML=(type==='ok'?'<i class="ti ti-circle-check"></i>':type==='err'?'<i class="ti ti-alert-circle"></i>':'<i class="ti ti-info-circle"></i>')+' '+msg;
+  t.className='toast show '+(type||'info');
+  clearTimeout(t._t);t._t=setTimeout(function(){t.className='toast';},dur||3000);
+}
+
+// ═══════════════════════════════════════════════════════
+// ROLES / TYPES SYSTEM
+// ═══════════════════════════════════════════════════════
+function allTypes(){return BUILTIN_TYPES.concat(customTypes);}
+
+// ─── CUSTOM ROLE COLORS ───────────────────────────────
+const CUSTOM_ROLE_PALETTE = [
+  '#E07B54','#50C4A0','#C46EB4','#5BC4DE','#E0A846',
+  '#7DC46B','#A07BE0','#E06B7B','#46C4BF','#C4A07B',
+  '#6B9CE0','#C4C46B','#E08CA0','#6BC4A0','#C4786B'
+];
+function customRoleColor(t){
+  var idx=customTypes.indexOf(t);
+  if(idx<0)return CUSTOM_ROLE_PALETTE[0];
+  return CUSTOM_ROLE_PALETTE[idx%CUSTOM_ROLE_PALETTE.length];
+}
+function dotColor(t){
+  var m={Judge:'#7F77DD',Attorney:'#378ADD',School:'#639922',Professor:'#BA7517',Other:'#6B7280'};
+  if(m[t])return m[t];
+  return customRoleColor(t);
+}
+function typeBarClass(t){
+  var m={Judge:'type-bar-judge',Attorney:'type-bar-attorney',School:'type-bar-school',Professor:'type-bar-professor',Other:'type-bar-other'};
+  return m[t]||'type-bar-custom';
+}
+function getCustomBarColor(t){
+  if(['Judge','Attorney','School','Professor','Other'].includes(t))return null;
+  return customRoleColor(t);
+}
+function statBg(t){
+  var m={Judge:'var(--judge-bg)',Attorney:'var(--atty-bg)',School:'var(--school-bg)',Professor:'var(--prof-bg)',Other:'var(--surface3)'};
+  if(m[t])return m[t];
+  // Generate a darker background from the custom color
+  var hex=customRoleColor(t).replace('#','');
+  var r=parseInt(hex.substr(0,2),16),g=parseInt(hex.substr(2,2),16),b=parseInt(hex.substr(4,2),16);
+  return 'rgba('+r+','+g+','+b+',0.15)';
+}
+function statClr(t){
+  var m={Judge:'var(--judge-text)',Attorney:'var(--atty-text)',School:'var(--school-text)',Professor:'var(--prof-text)',Other:'var(--text2)'};
+  if(m[t])return m[t];
+  return customRoleColor(t);
+}
+
+function populateTypeSelects(){
+  var types=allTypes();
+  var opts=types.map(function(t){return '<option value="'+t+'">'+t+'</option>';}).join('');
+  var addOpts='<option value="">Select…</option>'+opts;
+  var ft=document.getElementById('ft');if(ft)ft.innerHTML=addOpts;
+  var eft=document.getElementById('ef-type');if(eft)eft.innerHTML=opts;
+}
+
+function addCustomRole(){
+  var inp=document.getElementById('new-role-input');var v=inp.value.trim();
+  if(!v)return;
+  if(allTypes().map(function(t){return t.toLowerCase();}).includes(v.toLowerCase())){toast('That role already exists','err');return;}
+  customTypes.push(v);saveRoles();inp.value='';
+  populateTypeSelects();renderSidebar();renderRolesPage();
+  toast(v+' role added','ok');
+}
+function deleteCustomRole(t){
+  var inUse=contacts.some(function(c){return c.type===t;});
+  if(inUse){toast('Cannot delete: contacts exist with this role. Reassign them first.','err');return;}
+  customTypes=customTypes.filter(function(r){return r!==t;});saveRoles();
+  populateTypeSelects();renderSidebar();renderRolesPage();
+  toast(t+' role removed','ok');
+}
+function renderRolesPage(){
+  var bl=document.getElementById('builtin-roles-list');
+  bl.innerHTML='<div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:.5rem">Built-in roles</div>'
+    +BUILTIN_TYPES.map(function(t){return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:4px;font-size:12.5px"><div style="width:8px;height:8px;border-radius:50%;background:'+dotColor(t)+';flex-shrink:0"></div>'+t+'<span style="margin-left:auto;font-size:10px;color:var(--text3)">'+contacts.filter(function(c){return c.type===t;}).length+' contacts</span></div>';}).join('');
+  var cl=document.getElementById('custom-roles-list');
+  if(!customTypes.length){cl.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px 0">No custom roles yet.</div>';return;}
+  cl.innerHTML=customTypes.map(function(t){return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:4px;font-size:12.5px"><div style="width:8px;height:8px;border-radius:50%;background:'+customRoleColor(t)+';flex-shrink:0"></div>'+t+'<span style="margin-left:auto;font-size:10px;color:var(--text3)">'+contacts.filter(function(c){return c.type===t;}).length+' contacts</span><button class="btn btn-danger btn-sm" onclick="deleteCustomRole(\''+t+'\')" style="padding:2px 7px;font-size:10px"><i class="ti ti-trash" style="font-size:11px"></i></button></div>';}).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════
+function toggleContactsMenu(){
+  contactsMenuOpen=!contactsMenuOpen;
+  document.getElementById('contacts-submenu').classList.toggle('open',contactsMenuOpen);
+  document.getElementById('contacts-chev').classList.toggle('open',contactsMenuOpen);
+}
+function renderSidebar(){
+  var sub=document.getElementById('contacts-submenu');
+  sub.innerHTML='<div class="sb-item" onclick="goPage(\'directory\');setTypeFilter(null)" style="font-size:12px;padding:5px 1rem 5px 1.25rem" id="nav-sub-all"><i class="ti ti-layout-list" style="font-size:13px"></i>All Contacts</div>'
+    +allTypes().filter(function(t){return contacts.some(function(c){return c.type===t;});}).map(function(t){
+    var n=contacts.filter(function(c){return c.type===t;}).length;
+    return '<div class="sb-item" id="nav-sub-'+t.toLowerCase().replace(/\s+/g,'-')+'" onclick="goPage(\'directory\');setTypeFilter(\''+t+'\')"><i class="ti ti-circle" style="font-size:8px;color:'+dotColor(t)+'"></i>'+t+'<span class="ct">'+n+'</span></div>';
+  }).join('')
+  +'<div class="sb-item" onclick="goPage(\'directory\');setDirTab(\'roles\')"><i class="ti ti-tags" style="font-size:14px"></i>Manage Roles</div>';
+  document.getElementById('ct-total').textContent=contacts.length;
+  // Update active state on sub-items
+  var allSubItem=document.getElementById('nav-sub-all');
+  if(allSubItem)allSubItem.classList.toggle('active',!typeFilter);
+  allTypes().forEach(function(t){
+    var el=document.getElementById('nav-sub-'+t.toLowerCase().replace(/\s+/g,'-'));
+    if(el)el.classList.toggle('active',typeFilter===t);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function goPage(p){
+  var pages=['directory','reminders','add','update','email','sync'];
+  pages.forEach(function(x){
+    var pg=document.getElementById('page-'+x);if(pg)pg.classList.toggle('active',x===p);
+    var tb=document.getElementById('tb-'+x);if(tb)tb.style.display=x===p?'flex':'none';
+    var n=document.getElementById('nav-'+x);if(n)n.classList.toggle('active',x===p);
+    var mn=document.getElementById('mnav-'+x);if(mn)mn.classList.toggle('active',x===p);
+  });
+  // "All Contacts" sidebar item active state
+  var navAll=document.getElementById('nav-all');
+  if(navAll)navAll.classList.toggle('active',p==='directory');
+  if(p==='directory'){setDirTab('contacts');renderDir();}
+  if(p==='reminders')renderReminders();
+  if(p==='email')renderEmailPage();
+}
+
+function setDirTab(tab){
+  var isContacts=tab==='contacts';
+  document.getElementById('dir-contacts-panel').style.display=isContacts?'':'none';
+  document.getElementById('dir-roles-panel').style.display=isContacts?'none':'';
+  var tc=document.getElementById('dtab-contacts'),tr=document.getElementById('dtab-roles');
+  if(tc){tc.style.color=isContacts?'var(--text)':'var(--text2)';tc.style.borderBottomColor=isContacts?'var(--text)':'transparent';}
+  if(tr){tr.style.color=isContacts?'var(--text2)':'var(--text)';tr.style.borderBottomColor=isContacts?'transparent':'var(--text)';}
+  if(!isContacts)renderRolesPage();
+}
+
+function setTypeFilter(t){
+  typeFilter=t||null;
+  var titles={Judge:'Judges',Attorney:'Attorneys',School:'Law Schools',Professor:'Professors'};
+  document.getElementById('dir-title').textContent=typeFilter?(titles[typeFilter]||typeFilter):'All Contacts';
+  var navAll=document.getElementById('nav-all');
+  if(navAll)navAll.classList.toggle('active',!typeFilter);
+  // clear search when switching type
+  var srch=document.getElementById('srch');if(srch)srch.value='';
+  renderDir();
+}
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function fmtDate(s){if(!s)return '';var p=s.split('-'),m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return m[parseInt(p[1])-1]+' '+parseInt(p[2])+', '+p[0];}
+function daysDiff(d){if(!d)return null;var n=new Date();n.setHours(0,0,0,0);return Math.round((new Date(d+'T00:00:00')-n)/864e5);}
+function fuChip(c){if(!c.fuDate)return '';var d=daysDiff(c.fuDate);if(d<0)return '';var bg=d<=14?'var(--red-bg)':'var(--amber-bg)';var cl=d<=14?'var(--red-text)':'var(--amber-text)';return '<span class="fu-chip" style="background:'+bg+';color:'+cl+'"><i class="ti ti-calendar" style="font-size:10px;vertical-align:-1px"></i> '+fmtDate(c.fuDate)+'</span>';}
+function relBadge(r){if(!r)return '';var l={new:'New',warm:'Warm',strong:'Strong',mentor:'Mentor'};var cl={new:'rel-new',warm:'rel-warm',strong:'rel-strong',mentor:'rel-mentor'};return '<span class="rel-badge '+(cl[r]||'rel-new')+'">'+(l[r]||r)+'</span>';}
+function msearch(c,q){
+  var typeOk=!typeFilter||c.type===typeFilter;
+  if(!q)return typeOk;
+  q=q.toLowerCase();
+  return typeOk&&[c.name,c.type,c.role,c.region,c.email,c.phone,c.connected,c.notes,c.fuNote,c.practice,c.lastNote].some(function(v){return(v||'').toLowerCase().includes(q);});
+}
+
+// ═══════════════════════════════════════════════════════
+// CARDS
+// ═══════════════════════════════════════════════════════
+function renderCard(c){
+  var barClass=typeBarClass(c.type);
+  var customBarColor=getCustomBarColor(c.type);
+  var barStyle=customBarColor?'border-left:3px solid '+customBarColor+';':'';
+  var chip=fuChip(c);
+  var cb=c.calId?'<span class="cal-badge"><i class="ti ti-calendar-check" style="font-size:9px"></i></span>':'';
+  var el=c.email?'<a href="mailto:'+c.email+'" onclick="event.stopPropagation()" title="'+c.email+'"><i class="ti ti-mail" style="font-size:11px"></i>'+c.email+'</a>':'';
+  var ph=c.phone?'<a href="tel:'+c.phone+'" onclick="event.stopPropagation()"><i class="ti ti-phone" style="font-size:11px"></i>'+c.phone+'</a>':'';
+  var li=c.linkedin?'<a href="'+c.linkedin+'" target="_blank" onclick="event.stopPropagation()"><i class="ti ti-brand-linkedin" style="font-size:11px"></i></a>':'';
+  var commNote=(c.emailCount&&c.emailCount>0)?'<span style="font-size:9.5px;color:var(--text3);margin-left:3px">'+c.emailCount+' email'+(c.emailCount!==1?'s':'')+'</span>':'';
+  return '<div class="card '+barClass+'" id="card-'+c.id+'" style="'+barStyle+'">'
+    +'<div class="card-face" onclick="toggleCard('+c.id+')">'
+    +'<div class="type-dot" style="background:'+dotColor(c.type)+'"></div>'
+    +'<div class="card-main"><div class="card-name">'+c.name+'</div><div class="card-sub">'+c.role+'</div></div>'
+    +'<div class="card-meta">'+(chip||'')+cb+'<div class="clinks">'+el+ph+li+'</div>'
+    +'<i class="ti ti-chevron-down chevron" id="chev-'+c.id+'"></i></div>'
+    +'</div>'
+    +'<div class="card-body" id="body-'+c.id+'">'
+    +(c.connected?'<div class="blbl">How we connected</div><div class="btxt">'+c.connected+'</div>':'')
+    +(c.practice?'<div class="blbl">Practice areas</div><div class="btxt">'+c.practice+'</div>':'')
+    +(c.notes?'<div class="blbl">Notes</div><div class="btxt">'+c.notes+'</div>':'')
+    +(c.lastNote?'<div class="blbl">Last interaction'+commNote+'</div><div class="btxt">'+(c.lastContact?fmtDate(c.lastContact)+' — ':'')+c.lastNote+'</div>':'')
+    +(c.fuDate&&daysDiff(c.fuDate)>=0?'<div class="blbl">Follow-up — '+fmtDate(c.fuDate)+(c.calId?' <span class="cal-badge" style="vertical-align:1px"><i class="ti ti-calendar-check" style="font-size:9px"></i></span>':'')+'</div><div class="btxt">'+(c.fuNote||'')+'</div>':'<div class="blbl">Follow-up</div><div class="btxt" style="color:var(--text3)">None planned</div>')
+    +'<div class="card-actions">'
+    +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEdit('+c.id+')"><i class="ti ti-edit"></i>Edit</button>'
+    +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();jumpEmail('+c.id+')"><i class="ti ti-mail"></i>Draft email</button>'
+    +(c.fuDate&&daysDiff(c.fuDate)>=0&&!c.calId?'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openGCalForContact('+c.id+')"><i class="ti ti-calendar-plus"></i>Add to calendar</button>':'')
+    +'</div></div></div>';
+}
+
+function toggleCard(id){var b=document.getElementById('body-'+id),ch=document.getElementById('chev-'+id);if(!b)return;var o=b.classList.contains('open');b.classList.toggle('open',!o);ch.classList.toggle('open',!o);}
+
+// ═══════════════════════════════════════════════════════
+// DIRECTORY
+// ═══════════════════════════════════════════════════════
+function renderDir(){
+  var q=(document.getElementById('srch')||{}).value||'';q=q.trim();
+  var f=contacts.filter(function(c){return msearch(c,q);});
+  // Stats bar — only show types that have contacts
+  var sb=document.getElementById('sbar');
+  sb.innerHTML=allTypes().filter(function(t){return contacts.some(function(c){return c.type===t;});}).map(function(t){
+    var n=contacts.filter(function(c){return c.type===t;}).length;
+    return '<span class="stat-pill" style="background:'+statBg(t)+';color:'+statClr(t)+'" onclick="goPage(\'directory\');setTypeFilter(\''+t+'\')">'+n+' '+t+(n!==1?'s':'')+'</span>';
+  }).join('');
+  document.getElementById('ct-total').textContent=contacts.length;
+  renderSidebar();
+  var dc=document.getElementById('dircontent');
+  if(!f.length){dc.innerHTML='<div class="no-res"><i class="ti ti-search" style="font-size:22px;display:block;margin:0 auto 7px"></i>No contacts match.</div>';return;}
+  var html='';
+  if(view==='date'){
+    var wf=f.filter(function(c){return c.fuDate&&daysDiff(c.fuDate)>=0;}).sort(function(a,b){return a.fuDate.localeCompare(b.fuDate);});
+    var nf=f.filter(function(c){return !c.fuDate||daysDiff(c.fuDate)<0;});
+    var regs=[...new Set(nf.map(function(c){return c.region;}))];
+    if(wf.length)html+='<div class="sec-lbl">Upcoming follow-ups</div><div class="cards-list">'+wf.map(renderCard).join('')+'</div>';
+    if(nf.length){html+='<div class="sec-lbl">No follow-up planned</div>';regs.forEach(function(r){var rc=nf.filter(function(c){return c.region===r;});if(rc.length)html+='<div class="sub-lbl">'+r+'</div><div class="cards-list">'+rc.map(renderCard).join('')+'</div>';});}
+  }else{
+    var allR=[...new Set(contacts.map(function(c){return c.region;}))];
+    allR.forEach(function(r){var rc=f.filter(function(c){return c.region===r;});if(!rc.length)return;rc.sort(function(a,b){return allTypes().indexOf(a.type)-allTypes().indexOf(b.type);});html+='<div class="sec-lbl">'+r+'</div><div class="cards-list">'+rc.map(renderCard).join('')+'</div>';});
+  }
+  dc.innerHTML=html;
+}
+
+function setView(v){view=v;document.getElementById('vd').classList.toggle('active',v==='date');document.getElementById('vr').classList.toggle('active',v==='region');renderDir();}
+
+// ═══════════════════════════════════════════════════════
+// REMINDERS
+// ═══════════════════════════════════════════════════════
+function renderReminders(){
+  var upcoming=contacts.filter(function(c){return c.fuDate&&daysDiff(c.fuDate)>=0;}).sort(function(a,b){return a.fuDate.localeCompare(b.fuDate);});
+  var dc=document.getElementById('reminders-content');
+  if(!upcoming.length){dc.innerHTML='<div class="no-res"><i class="ti ti-bell-off" style="font-size:22px;display:block;margin:0 auto 7px"></i>No upcoming follow-ups.</div>';return;}
+  var today=upcoming.filter(function(c){return daysDiff(c.fuDate)===0;});
+  var soon=upcoming.filter(function(c){var d=daysDiff(c.fuDate);return d>0&&d<=7;});
+  var later=upcoming.filter(function(c){return daysDiff(c.fuDate)>7;});
+  var html='';
+  if(today.length)html+='<div class="sec-lbl" style="color:var(--red-text)">Due today</div><div class="cards-list">'+today.map(renderCard).join('')+'</div>';
+  if(soon.length)html+='<div class="sec-lbl">Within 7 days</div><div class="cards-list">'+soon.map(renderCard).join('')+'</div>';
+  if(later.length)html+='<div class="sec-lbl">Coming up</div><div class="cards-list">'+later.map(renderCard).join('')+'</div>';
+  dc.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════
+// ADD FORM
+// ═══════════════════════════════════════════════════════
+function checkCalOpt(){document.getElementById('cal-option').style.display=document.getElementById('fud').value?'block':'none';}
+function openGCal(){openGCalForDate(document.getElementById('fn').value.trim()||'Contact',document.getElementById('fun').value.trim()||'Follow up',document.getElementById('fud').value);}
+function openGCalForContact(id){var c=contacts.find(function(x){return x.id===id;});if(!c||!c.fuDate)return;openGCalForDate(c.name,c.fuNote||'Follow up',c.fuDate);}
+function openGCalForDate(name,note,date){
+  if(!date)return;
+  var d=date.replace(/-/g,'');
+  // Include reminder via details — Google Calendar URL supports &details but not native reminders via URL
+  // We add a reminder note in the description so user sees it
+  var details=encodeURIComponent((note||'Follow up with '+name)+'\n\n⏰ Reminder: Follow up on '+date+'\n\nSet a 1-day reminder in Google Calendar after adding this event.');
+  var url='https://calendar.google.com/calendar/render?action=TEMPLATE'
+    +'&text='+encodeURIComponent('Follow up — '+name)
+    +'&dates='+d+'/'+d
+    +'&details='+details
+    +'&crm=POPUP&crm_minutes=1440';  // 1440 min = 24 hours prior
+  window.open(url,'_blank');
+  toast('Opening Google Calendar…','info');
+}
+function clearForm(){['fn','fr','fg','fe','fp','fli','fc','fpa','fnotes','fud','fun'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});document.getElementById('ft').value='';document.getElementById('fstat').innerHTML='';document.getElementById('cal-option').style.display='none';}
+
+function openCalSyncModal(){
+  var pending=contacts.filter(function(c){return c.fuDate&&daysDiff(c.fuDate)>=0;}).sort(function(a,b){return a.fuDate.localeCompare(b.fuDate);});
+  var list=document.getElementById('cal-sync-list');
+  var descEl=document.getElementById('cal-sync-desc');
+  var syncAllBtn=document.getElementById('cal-sync-all-btn');
+  if(descEl)descEl.textContent='Click each link to open Google Calendar with the event pre-filled. Each event includes a 1-day-prior reminder note.';
+  if(syncAllBtn)syncAllBtn.style.display='none';
+  if(!pending.length){list.innerHTML='<div style="font-size:12.5px;color:var(--text3);padding:8px 0">No upcoming follow-ups with a date set.</div>';}
+  else{
+    list.innerHTML=pending.map(function(c){
+      var d=c.fuDate.replace(/-/g,'');
+      var details=(c.fuNote||'Follow up with '+c.name)+'\n\n⏰ Reminder: Follow up on '+c.fuDate+'\n\nSet a 1-day reminder in Google Calendar after adding this event.';
+      var url='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('Follow up — '+c.name)+'&dates='+d+'/'+d+'&details='+encodeURIComponent(details)+'&crm=POPUP&crm_minutes=1440';
+      var dd=daysDiff(c.fuDate);
+      var urgBg=dd===0?'var(--red-bg)':dd<=7?'var(--amber-bg)':'var(--surface2)';
+      var urgClr=dd===0?'var(--red-text)':dd<=7?'var(--amber-text)':'var(--text2)';
+      return '<div style="display:flex;align-items:center;gap:9px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm)">'
+        +'<div style="width:7px;height:7px;border-radius:50%;background:'+dotColor(c.type)+';flex-shrink:0"></div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+c.name+'</div>'
+        +'<div style="font-size:11px;color:var(--text3)">'+fmtDate(c.fuDate)+(c.fuNote?' — '+c.fuNote:'')+'</div></div>'
+        +'<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:'+urgBg+';color:'+urgClr+';white-space:nowrap">'+(dd===0?'Today':dd===1?'Tomorrow':'In '+dd+' days')+'</span>'
+        +'<a href="'+url+'" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;flex-shrink:0"><i class="ti ti-external-link"></i>Open</a>'
+        +'</div>';
+    }).join('');
+  }
+  document.getElementById('cal-sync-modal').classList.add('open');
+}
+function submitForm(){
+  var name=document.getElementById('fn').value.trim(),type=document.getElementById('ft').value;
+  if(!name||!type){document.getElementById('fstat').innerHTML='<span style="color:var(--red-text)"><i class="ti ti-alert-circle"></i> Name and type are required.</span>';return;}
+  var c={id:nextId++,name:name,type:type,role:document.getElementById('fr').value.trim(),region:document.getElementById('fg').value.trim(),rel:'',email:document.getElementById('fe').value.trim(),phone:document.getElementById('fp').value.trim(),linkedin:document.getElementById('fli').value.trim(),connected:document.getElementById('fc').value.trim(),practice:document.getElementById('fpa').value.trim(),notes:document.getElementById('fnotes').value.trim(),fuDate:document.getElementById('fud').value,fuNote:document.getElementById('fun').value.trim(),lastContact:'',emailCount:0,lastNote:'',calId:''};
+  contacts.push(c);save();updateFUCount();renderSidebar();clearForm();
+  document.getElementById('fstat').innerHTML='<span style="color:var(--green-text)"><i class="ti ti-circle-check"></i> '+name+' added.</span>';
+  toast(name+' added to directory','ok');
+  setTimeout(function(){var s=document.getElementById('fstat');if(s)s.innerHTML='';},4000);
+}
+
+// ═══════════════════════════════════════════════════════
+// EDIT MODAL
+// ═══════════════════════════════════════════════════════
+function openEdit(id){
+  var c=contacts.find(function(x){return x.id===id;});if(!c)return;editingId=id;
+  var m={name:'ef-name',type:'ef-type',role:'ef-role',region:'ef-region',email:'ef-email',phone:'ef-phone',linkedin:'ef-linkedin',connected:'ef-connected',practice:'ef-practice',notes:'ef-notes',lastContact:'ef-lastcontact',emailCount:'ef-emailcount',lastNote:'ef-lastnote',fuDate:'ef-fudate',fuNote:'ef-funote'};
+  Object.keys(m).forEach(function(k){var el=document.getElementById(m[k]);if(el)el.value=c[k]||'';});
+  document.getElementById('del-confirm').classList.remove('show');
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeModal(){document.getElementById('edit-modal').classList.remove('open');editingId=null;}
+function saveEdit(){
+  if(!editingId)return;var idx=contacts.findIndex(function(c){return c.id===editingId;});if(idx<0)return;
+  var oldFuDate=contacts[idx].fuDate||'';
+  var m={name:'ef-name',type:'ef-type',role:'ef-role',region:'ef-region',email:'ef-email',phone:'ef-phone',linkedin:'ef-linkedin',connected:'ef-connected',practice:'ef-practice',notes:'ef-notes',lastContact:'ef-lastcontact',emailCount:'ef-emailcount',lastNote:'ef-lastnote',fuDate:'ef-fudate',fuNote:'ef-funote'};
+  Object.keys(m).forEach(function(k){var el=document.getElementById(m[k]);if(el)contacts[idx][k]=(el.value.trim?el.value.trim():(el.value||''));});
+  contacts[idx].emailCount=parseInt(contacts[idx].emailCount)||0;
+  save();updateFUCount();closeModal();renderDir();toast('Contact updated','ok');
+}
+function confirmDelete(){
+  if(!editingId)return;var name=(contacts.find(function(c){return c.id===editingId;})||{}).name||'Contact';
+  contacts=contacts.filter(function(c){return c.id!==editingId;});
+  save();updateFUCount();renderSidebar();closeModal();renderDir();toast(name+' deleted','ok');
+}
+
+// ═══════════════════════════════════════════════════════
+// JUMP TO EMAIL
+// ═══════════════════════════════════════════════════════
+function jumpEmail(id){
+  var c=contacts.find(function(x){return x.id===id;});if(!c)return;
+  // Clear previous recipients so we start fresh with this contact
+  selectedRecipients=[];
+  if(!selectedRecipients.find(function(r){return r.id===id;}))selectedRecipients.push({id:c.id,name:c.name});
+  goPage('email');
+  // Force autofill after page renders
+  setTimeout(function(){
+    var goalEl=document.getElementById('e-goal');
+    var ind=document.getElementById('autofill-indicator');
+    if(goalEl&&c.fuNote&&c.fuNote.trim()){
+      goalEl.value=c.fuNote;
+      if(ind)ind.style.display='inline-flex';
+      goalEl.classList.add('flash');
+      setTimeout(function(){goalEl.classList.remove('flash');},900);
+    }
+  },50);
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ═══════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════
+// GITHUB GIST SYNC
+// ═══════════════════════════════════════════════════════
+function getGistToken(){return (document.getElementById('gist-token')||{}).value||localStorage.getItem(SK_GIST)||'';}
+function setGistStatus(msg,isErr){var el=document.getElementById('gist-status');if(el){el.textContent=msg;el.style.color=isErr?'var(--red-text)':'var(--green-text)';}}
+async function gistPush(){
+  var token=getGistToken();if(!token){setGistStatus('Add your GitHub token first.','err');return;}
+  setGistStatus('Pushing…','');
+  var data=JSON.stringify({version:5,exported:new Date().toISOString(),contacts:contacts,customTypes:customTypes},null,2);
+  var gistId=localStorage.getItem(SK_GIST_ID)||'';
+  try{
+    var url=gistId?'https://api.github.com/gists/'+gistId:'https://api.github.com/gists';
+    var method=gistId?'PATCH':'POST';
+    var body={description:'Legal Directory Backup — '+new Date().toISOString().split('T')[0],public:false,files:{'legal_directory.json':{content:data}}};
+    var resp=await fetch(url,{method:method,headers:{'Authorization':'token '+token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    var result=await resp.json();
+    localStorage.setItem(SK_GIST_ID,result.id);
+    setGistStatus('Pushed successfully at '+new Date().toLocaleTimeString(),'');
+    toast('Synced to GitHub Gist','ok');
+  }catch(e){setGistStatus('Push failed: '+e.message,'err');}
+}
+async function gistPull(){
+  var token=getGistToken();var gistId=localStorage.getItem(SK_GIST_ID)||'';
+  if(!token){setGistStatus('Add your GitHub token first.','err');return;}
+  if(!gistId){setGistStatus('No Gist found — push first to create one.','err');return;}
+  setGistStatus('Pulling…','');
+  try{
+    var resp=await fetch('https://api.github.com/gists/'+gistId,{headers:{'Authorization':'token '+token}});
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    var result=await resp.json();
+    var content=result.files['legal_directory.json'].content;
+    var data=JSON.parse(content);
+    contacts=data.contacts||[];if(data.customTypes)customTypes=data.customTypes;
+    nextId=contacts.length?Math.max.apply(null,contacts.map(function(c){return c.id||0;}))+1:1;
+    save();saveRoles();updateFUCount();populateTypeSelects();renderSidebar();renderDir();
+    setGistStatus('Pulled '+contacts.length+' contacts at '+new Date().toLocaleTimeString(),'');
+    toast('Pulled from GitHub Gist','ok');
+  }catch(e){setGistStatus('Pull failed: '+e.message,'err');}
+}
+function showGistId(){var id=localStorage.getItem(SK_GIST_ID)||'';setGistStatus(id?'Gist ID: '+id:'No Gist created yet. Push first.','');}
+
+// ═══════════════════════════════════════════════════════
+// MISSING FIELD CHECK
+// ═══════════════════════════════════════════════════════
+function checkMissingFields(){
+  var raw=document.getElementById('raw-notes').value.toLowerCase();
+  var hints=[];
+  if(!raw.match(/\b[\w.]+@[\w.]+\b/))hints.push({icon:'ti-mail',text:'Email address missing'});
+  if(!raw.match(/\b(firm|law|company|office|llp|pc|inc|llc|partner|associate|counsel|judge|professor|dean)\b/i))hints.push({icon:'ti-building',text:'Organization not mentioned'});
+  if(!raw.match(/\b(\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|\(\d{3}\))/))hints.push({icon:'ti-phone',text:'Phone number missing'});
+  if(!raw.match(/linkedin/i))hints.push({icon:'ti-brand-linkedin',text:'LinkedIn not mentioned'});
+  if(!raw.match(/\b(met|connected|introduced|panel|event|email|call|lunch|coffee|through|via|referral)\b/i))hints.push({icon:'ti-users',text:'How you met not described'});
+  if(!raw.match(/\b(follow.?up|reach out|contact|remind|check in|in \w+ weeks?|next month|in \w+ days?)\b/i))hints.push({icon:'ti-calendar',text:'No follow-up date mentioned'});
+  var hEl=document.getElementById('missing-hints');
+  if(!hints.length){hEl.style.display='none';toast('Notes look complete','ok');return;}
+  hEl.style.display='flex';
+  hEl.innerHTML='<span style="font-size:10.5px;color:var(--text3);align-self:center;margin-right:3px">Missing:</span>'+hints.map(function(h){return '<span class="hint-pill"><i class="ti '+h.icon+'"></i>'+h.text+'</span>';}).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// UPDATE PROMPT GENERATION
+// ═══════════════════════════════════════════════════════
+function genUpdatePrompt(){
+  var raw=document.getElementById('raw-notes').value.trim();
+  if(!raw){toast('Paste some notes first','err');return;}
+  var existing=contacts.map(function(c){return c.name+' ('+c.type+', '+c.region+')';}).join(', ');
+  var today=new Date().toISOString().split('T')[0];
+  var customRolesList=customTypes.length?' Custom roles in use: '+customTypes.join(', ')+'.':'';
+  var prompt='CRITICAL INSTRUCTION: Return ONLY a valid JSON object. Do NOT create any UI, widgets, HTML, React components, dashboards, or application interfaces of any kind. Do NOT explain your reasoning. Do NOT add any text before or after the JSON. Your entire response must be the JSON object and nothing else.\n\nYou are a data extraction assistant for a legal networking directory. Today is '+today+'.\nExisting contacts (for reference): '+existing+'\nAvailable types: Judge, Attorney, School, Professor, Other'+customRolesList+'\n\nParse the raw notes below into a structured contact record. Return ONLY this JSON:\n\n{\n  "name": "",\n  "type": "one of the available types above",\n  "role": "",\n  "region": "",\n  "rel": "new | warm | strong | mentor",\n  "email": "",\n  "phone": "",\n  "linkedin": "",\n  "connected": "",\n  "practice": "",\n  "notes": "",\n  "fuDate": "YYYY-MM-DD or empty string",\n  "fuNote": "",\n  "lastContact": "YYYY-MM-DD or empty string",\n  "emailCount": 0,\n  "lastNote": ""\n}\n\nRules:\n- type: choose the best match from available types. IMPORTANT: if the person does not clearly fit Judge, Attorney, School, or Professor, or any custom role listed, use "Other". Never guess or force-fit an unclear role into a specific category.\n- rel: new=just met, warm=1-2 interactions, strong=ongoing, mentor=key advocate\n- connected: how we met (e.g. "DEI Law Panel, November 2025")\n- practice: 2-3 areas comma-separated\n- notes: clean 2-3 sentence bio\n- fuDate: calculate from today if relative (e.g. "in two weeks" from '+today+')\n- lastContact: date of most recent interaction mentioned\n- emailCount: number of emails/interactions if mentioned\n- lastNote: brief description of last interaction\n\nRAW NOTES:\n'+raw;
+  navigator.clipboard.writeText(prompt).then(function(){document.getElementById('update-prompt-box').style.display='block';toast('Prompt copied to clipboard','ok');}).catch(function(){document.getElementById('update-prompt-box').style.display='block';toast('Prompt generated','info');});
+}
+function importFromClaude(){
+  var raw=document.getElementById('claude-json').value.trim();
+  if(!raw){document.getElementById('import-stat').innerHTML='<span style="color:var(--red-text)">Paste Claude\'s JSON response first.</span>';return;}
+  try{
+    var clean=raw.replace(/```json|```/g,'').trim();var c=JSON.parse(clean);if(!c.name)throw new Error();
+    c.id=nextId++;c.calId='';c.emailCount=parseInt(c.emailCount)||0;
+    contacts.push(c);save();updateFUCount();renderSidebar();
+    document.getElementById('claude-json').value='';document.getElementById('raw-notes').value='';
+    document.getElementById('update-prompt-box').style.display='none';
+    document.getElementById('import-stat').innerHTML='';document.getElementById('missing-hints').style.display='none';
+    toast(c.name+' added to directory','ok');renderDir();
+  }catch(e){document.getElementById('import-stat').innerHTML='<span style="color:var(--red-text)">Could not parse JSON. Paste Claude\'s complete response with no extra text.</span>';}
+}
+
+// ═══════════════════════════════════════════════════════
+// EMAIL PAGE
+// ═══════════════════════════════════════════════════════
+function renderEmailPage(){renderSelRecs();renderRecDD('');updateEmailContextUI();}
+function updateEmailContextUI(){
+  var isMulti=selectedRecipients.length>1;
+  document.getElementById('per-contact-ctx').style.display=isMulti?'':'none';
+  document.getElementById('single-contact-ctx').style.display=isMulti?'none':'';
+  if(isMulti)renderPerContactCtx();
+}
+function renderPerContactCtx(){
+  var el=document.getElementById('per-contact-ctx-list');if(!el)return;
+  el.innerHTML=selectedRecipients.map(function(r){
+    var c=contacts.find(function(x){return x.id===r.id;});if(!c)return '';
+    var existing=document.getElementById('ctx-goal-'+r.id);
+    var val=(existing&&existing.value)||c.fuNote||'';
+    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px">'
+      +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">'
+      +'<div style="width:7px;height:7px;border-radius:50%;background:'+dotColor(c.type)+';flex-shrink:0"></div>'
+      +'<span style="font-size:12.5px;font-weight:500">'+c.name+'</span>'
+      +'<span style="font-size:10.5px;color:var(--text3)">'+c.role+'</span></div>'
+      +'<textarea id="ctx-goal-'+r.id+'" rows="2" style="width:100%;padding:6px 9px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-size:12px;font-family:\'DM Sans\',sans-serif;resize:vertical" placeholder="What is this email to '+c.name.split(' ')[0]+' about? e.g. Following up on our coffee chat…">'+val+'</textarea>'
+      +'</div>';
+  }).join('');
+}
+function filterRecDD(){var q=document.getElementById('rec-search').value.toLowerCase();renderRecDD(q);document.getElementById('rec-dd').classList.add('open');}
+function openRecDD(){var q=document.getElementById('rec-search').value.toLowerCase();renderRecDD(q);document.getElementById('rec-dd').classList.add('open');}
+function renderRecDD(q){
+  var dd=document.getElementById('rec-dd');
+  var filtered=contacts.filter(function(c){var sel=selectedRecipients.find(function(r){return r.id===c.id;});if(sel)return false;if(!q)return true;return(c.name+' '+c.role+' '+c.region).toLowerCase().includes(q);});
+  if(!filtered.length){dd.innerHTML='<div class="dd-empty">No contacts found</div>';return;}
+  dd.innerHTML=filtered.map(function(c){return '<div class="dd-item" onclick="addRecipient('+c.id+')">'+'<div class="dd-dot" style="background:'+dotColor(c.type)+'"></div>'+'<span class="dd-name">'+c.name+'</span><span class="dd-sub">'+c.region+'</span></div>';}).join('');
+}
+function addRecipient(id){
+  var c=contacts.find(function(x){return x.id===id;});if(!c)return;
+  if(!selectedRecipients.find(function(r){return r.id===id;}))selectedRecipients.push({id:c.id,name:c.name});
+  document.getElementById('rec-search').value='';document.getElementById('rec-dd').classList.remove('open');
+  renderSelRecs();updateEmailContextUI();autoFillCtx();
+}
+function removeRecipient(id){selectedRecipients=selectedRecipients.filter(function(r){return r.id!==id;});renderSelRecs();updateEmailContextUI();if(!selectedRecipients.length)clearAutoFill();}
+function renderSelRecs(){var el=document.getElementById('sel-recs');if(!el)return;if(!selectedRecipients.length){el.innerHTML='';return;}el.innerHTML=selectedRecipients.map(function(r){return '<span class="sel-chip">'+r.name+'<button onclick="removeRecipient('+r.id+')" title="Remove"><i class="ti ti-x" style="font-size:12px"></i></button></span>';}).join('');}
+function autoFillCtx(forceOverride){
+  if(selectedRecipients.length!==1)return;
+  var c=contacts.find(function(x){return x.id===selectedRecipients[0].id;});if(!c)return;
+  var goalEl=document.getElementById('e-goal');var ind=document.getElementById('autofill-indicator');
+  if(c.fuNote&&c.fuNote.trim()&&(forceOverride||!goalEl.value.trim())){
+    goalEl.value=c.fuNote;ind.style.display='inline-flex';
+    goalEl.classList.add('flash');setTimeout(function(){goalEl.classList.remove('flash');},900);
+  }
+}
+function clearAutoFill(){var ind=document.getElementById('autofill-indicator');if(ind)ind.style.display='none';}
+document.addEventListener('click',function(e){var dd=document.getElementById('rec-dd');var w=document.querySelector('.rec-wrap');if(dd&&w&&!w.contains(e.target))dd.classList.remove('open');var csm=document.getElementById('cal-sync-modal');if(csm&&e.target===csm)csm.classList.remove('open');var em=document.getElementById('edit-modal');if(em&&e.target===em)closeModal();});
+
+function genEmailPromptOnly(){
+  // Legacy: just copy the prompt to clipboard
+  if(!selectedRecipients.length){document.getElementById('email-stat').innerHTML='<span style="color:var(--red-text)">Select at least one recipient.</span>';return;}
+  var prompt=buildEmailPrompt();if(!prompt)return;
+  navigator.clipboard.writeText(prompt).then(function(){
+    document.getElementById('email-prompt-box').style.display='block';
+    document.getElementById('draft-status-lbl').textContent='Prompt copied — paste into Claude.';
+    document.getElementById('ai-draft-spinner').style.display='none';
+    document.getElementById('email-stat').innerHTML='';
+    toast('Prompt copied to clipboard','ok');
+  }).catch(function(){toast('Could not copy — try again','err');});
+}
+
+async function draftEmailsWithAI(){
+  if(!selectedRecipients.length){document.getElementById('email-stat').innerHTML='<span style="color:var(--red-text)">Select at least one recipient.</span>';return;}
+  var prompt=buildEmailPrompt();if(!prompt)return;
+
+  var btn=document.getElementById('draft-btn');
+  btn.disabled=true;
+  document.getElementById('email-prompt-box').style.display='block';
+  document.getElementById('ai-draft-spinner').style.display='inline-flex';
+  document.getElementById('draft-status-lbl').textContent='Drafting your email'+(selectedRecipients.length>1?'s':'')+'…';
+  document.getElementById('gmail-compose-links').innerHTML='';
+  document.getElementById('email-stat').innerHTML='';
+
+  try{
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!resp.ok)throw new Error('API error '+resp.status);
+    var data=await resp.json();
+    var raw=(data.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
+    if(!raw)throw new Error('Empty response');
+
+    // Parse and open Gmail
+    document.getElementById('claude-email-response').value=raw;
+    var emails=parseEmailsFromRaw(raw);
+    if(!emails.length)throw new Error('Could not parse email format');
+
+    document.getElementById('draft-status-lbl').textContent=emails.length+' draft'+(emails.length>1?'s':'')+' ready — opening Gmail…';
+    document.getElementById('ai-draft-spinner').style.display='none';
+
+    document.getElementById('gmail-compose-links').innerHTML=emails.map(function(e,i){
+      var params='?view=cm&fs=1';
+      if(e.to)params+='&to='+encodeURIComponent(e.to);
+      if(e.subject)params+='&su='+encodeURIComponent(e.subject);
+      if(e.body)params+='&body='+encodeURIComponent(e.body);
+      var url='https://mail.google.com/mail/'+params;
+      var label=e.name?e.name+(e.to?' ('+e.to+')':''):e.to||'Recipient '+(i+1);
+      return '<a href="'+url+'" target="_blank" class="btn btn-success btn-sm" style="text-decoration:none"><i class="ti ti-brand-gmail"></i>Open Draft → '+label+'</a>';
+    }).join('');
+
+    // Auto-open first one
+    if(emails.length===1){
+      var params='?view=cm&fs=1';
+      if(emails[0].to)params+='&to='+encodeURIComponent(emails[0].to);
+      if(emails[0].subject)params+='&su='+encodeURIComponent(emails[0].subject);
+      if(emails[0].body)params+='&body='+encodeURIComponent(emails[0].body);
+      window.open('https://mail.google.com/mail/'+params,'_blank');
+      toast('Gmail draft opened','ok');
+    } else {
+      toast(emails.length+' drafts ready — click each to open Gmail','ok');
+    }
+  }catch(e){
+    document.getElementById('ai-draft-spinner').style.display='none';
+    document.getElementById('draft-status-lbl').textContent='Draft failed — use "Copy prompt only" instead.';
+    toast('AI draft failed: '+e.message,'err',5000);
+  } finally {
+    btn.disabled=false;
+  }
+}
+
+function parseEmailsFromRaw(raw){
+  var emails=[];
+  var blocks=raw.split(/\n---+\n?/).map(function(b){return b.trim();}).filter(Boolean);
+  if(blocks.length>1||(blocks.length===1&&blocks[0].match(/^FOR:/im))){
+    blocks.forEach(function(block){var e=parseEmailBlock(block);if(e)emails.push(e);});
+  } else {
+    var e=parseEmailBlock(raw);if(e)emails.push(e);
+  }
+  return emails;
+}
+
+function buildEmailPrompt(){
+  var isMulti=selectedRecipients.length>1;
+  var sharedCtx=isMulti?(document.getElementById('e-context')||{}).value||'':(document.getElementById('e-context-single')||{}).value||'';
+  if(!isMulti){
+    var sg=document.getElementById('e-goal').value.trim();
+    if(!sg){document.getElementById('email-stat').innerHTML='<span style="color:var(--red-text)">Describe what this email is about.</span>';return null;}
+  }
+  var etype=document.getElementById('e-type').value,tone=document.getElementById('e-tone').value;
+  var typeLabels={followup:'follow-up / check-in',thankyou:'thank-you after meeting',cold:'cold outreach (first contact)',internship:'internship or opportunity request',networking:'networking / coffee chat request',scheduling:'scheduling or meeting confirmation',rec:'recommendation letter request',reconnect:'professional reconnection'};
+
+  var recipientDetails=selectedRecipients.map(function(r){
+    var c=contacts.find(function(x){return x.id===r.id;});if(!c)return '';
+    var hasPrior=c.emailCount&&c.emailCount>0;
+    var priorStatus=hasPrior?'YES — '+c.emailCount+' email'+(c.emailCount!==1?'s':'')+(c.lastContact?' (last: '+fmtDate(c.lastContact)+')':'')+(c.lastNote?'. Most recent interaction: '+c.lastNote:''):'NO — this is first outreach. DO NOT imply any prior email or prior communication exists.';
+    var perGoal=isMulti?((document.getElementById('ctx-goal-'+r.id)||{}).value||'').trim():'';
+    var goalLine=isMulti&&perGoal?'\nSpecific email goal for this contact: '+perGoal:'';
+    return '--- RECIPIENT: '+c.name+' ---\nType: '+c.type+'\nRole: '+c.role+'\nRegion: '+c.region+'\nEmail: '+(c.email||'unknown')+'\nHow we connected: '+(c.connected||'unknown')+'\nPractice areas: '+(c.practice||'unknown')+'\nBio/notes: '+(c.notes||'none')+'\nPrior email communication: '+priorStatus+'\nFollow-up topic from database: '+(c.fuNote||'none')+goalLine;
+  }).filter(Boolean).join('\n\n');
+
+  var singleGoal=!isMulti?document.getElementById('e-goal').value.trim():'';
+  var antiHalluc='\n\nCRITICAL ANTI-HALLUCINATION RULE: The "Prior email communication" field above is the authoritative source of truth. If it says "NO — this is first outreach", write the email as a genuine FIRST contact. NEVER write "follow up on my previous email" or imply prior correspondence unless the field explicitly confirms emails exist. Never fabricate relationship history.\n';
+
+  return 'CRITICAL: Return ONLY email drafts. Do NOT create any UI, widgets, HTML, applications, dashboards, or code. Do NOT add explanatory text before or after the email drafts.\n\nYou are my personal email-writing assistant. Draft emails that sound authentically like me.\n\nABOUT ME:\nName: Kaden Huynh\nYear: Second-year undergraduate\nSchool: UC Santa Barbara\nMajor: Political Science, Philosophy minor\nGoal: Law school at UCLA or USC, applying fall 2027\nFrom: San Diego, CA\n\n'+(isMulti?'Draft '+selectedRecipients.length+' separate, individually personalized emails. Do not reuse generic phrases across emails. Tailor each to the specific relationship history and the per-contact email goal provided.\n\n':'')+'EMAIL REQUEST:\nType: '+(typeLabels[etype]||etype)+'\nTone preference: '+tone+(singleGoal?'\nWhat this email is about: '+singleGoal:'')+(sharedCtx?'\nAdditional context: '+sharedCtx:'')+antiHalluc+'\nRECIPIENT PROFILES:\n\n'+recipientDetails+'\n\n'+STYLE_GUIDE+'\n\n'+(isMulti?'Produce '+selectedRecipients.length+' separate drafts. For each one, use exactly this format:\n\nFOR: [Full Name]\nTO: [their email address from profile above]\nSUBJECT: [subject]\n\nBODY:\n[body]\n\n---':'Format your response exactly as:\n\nTO: [recipient email address from profile above]\nSUBJECT: [subject]\n\nBODY:\n[body]');
+}
+
+function renderGmailPlaceholders(){
+  var el=document.getElementById('gmail-compose-links');if(!el)return;
+  el.innerHTML='<div style="font-size:11.5px;color:var(--text3);display:flex;align-items:center;gap:5px"><i class="ti ti-arrow-up" style="font-size:13px"></i>Paste Claude\'s response below, then click "Open Gmail from pasted response".</div>';
+}
+
+function parseClaudeEmailResponse(){/* live feedback — no action needed */}
+
+function parseAndOpenGmail(){
+  var raw=(document.getElementById('claude-email-response')||{}).value||'';
+  raw=raw.trim();
+  if(!raw){toast('Paste Claude\'s email response first','err');return;}
+  var el=document.getElementById('gmail-compose-links');
+  el.innerHTML='';
+  var emails=parseEmailsFromRaw(raw);
+  if(!emails.length){
+    el.innerHTML='<div style="font-size:11.5px;color:var(--red-text)">Could not parse email format. Make sure you pasted Claude\'s full response including TO:, SUBJECT:, and BODY: sections.</div>';
+    return;
+  }
+  el.innerHTML=emails.map(function(e,i){
+    var params='?view=cm&fs=1';
+    if(e.to)params+='&to='+encodeURIComponent(e.to);
+    if(e.subject)params+='&su='+encodeURIComponent(e.subject);
+    if(e.body)params+='&body='+encodeURIComponent(e.body);
+    var url='https://mail.google.com/mail/'+params;
+    var label=e.name?e.name+(e.to?' ('+e.to+')':''):e.to||'Recipient '+(i+1);
+    return '<a href="'+url+'" target="_blank" class="btn btn-success btn-sm" style="text-decoration:none"><i class="ti ti-brand-gmail"></i>Open Draft → '+label+'</a>';
+  }).join('');
+  toast(emails.length+' Gmail draft'+(emails.length>1?'s':'')+' ready','ok');
+}
+
+function parseEmailBlock(block){
+  var result={name:'',to:'',subject:'',body:''};
+  
+  // FOR: line (multi-email)
+  var forMatch=block.match(/^FOR:\s*(.+)/im);
+  if(forMatch)result.name=forMatch[1].trim();
+  
+  // TO: line
+  var toMatch=block.match(/^TO:\s*(.+)/im);
+  if(toMatch)result.to=toMatch[1].trim();
+  
+  // SUBJECT: line
+  var subMatch=block.match(/^SUBJECT:\s*(.+)/im);
+  if(subMatch)result.subject=subMatch[1].trim();
+  
+  // BODY: everything after BODY: line
+  var bodyMatch=block.match(/^BODY:\s*\n([\s\S]*)/im);
+  if(bodyMatch){
+    result.body=bodyMatch[1].trim();
+    // Remove trailing --- if present
+    result.body=result.body.replace(/\n---+\s*$/,'').trim();
+  }
+  
+  // Only return if we have at least to or subject
+  if(!result.to&&!result.subject&&!result.body)return null;
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════
+// GOOGLE CALENDAR — URL link method only (no OAuth)
+// ═══════════════════════════════════════════════════════
+var gcalAccessToken=null;
+var gcalTokenExpiry=0;
+function gcalInitUI(){/* no-op — OAuth removed, using link method */}
+function gcalSetConnected(){}
+function gcalConnect(){toast('Calendar uses one-click links — no sign-in needed.','info');}
+function gcalDisconnect(){}
+function gcalEnsureToken(){return null;}
+async function gcalCreateEvent(){return null;}
+async function gcalAddForContact(id){openGCalForContact(id);}
+async function gcalSyncAll(){openCalSyncModal();}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+load();
+populateTypeSelects();
+renderSidebar();
+renderDir();
+</script>
+</body>
+</html>
