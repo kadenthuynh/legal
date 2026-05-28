@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Legal Directory v8 — Kaden Huynh</title>
+<title>Legal Directory</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
@@ -243,6 +243,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <aside class="sidebar">
   <div class="sb-brand">
     <div class="sb-brand-name">Legal Directory</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:1px;letter-spacing:.02em">Kaden Huynh</div>
   </div>
   <nav class="sb-nav">
     <!-- Collapsible contacts section -->
@@ -599,6 +600,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div id="pin-gate" style="position:fixed;inset:0;z-index:99999;background:#0f1117;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0">
   <div style="background:#1c1c19;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:2.2rem 2.4rem;width:320px;box-shadow:0 8px 40px rgba(0,0,0,0.6)">
     <div style="font-family:'DM Serif Display',serif;font-size:20px;color:#eeeee6;margin-bottom:4px;text-align:center">Legal Directory</div>
+    <div style="font-size:12px;color:#a6a69a;text-align:center;margin-bottom:2px;letter-spacing:.02em">Kaden Huynh</div>
     <div style="font-size:11.5px;color:#646458;text-align:center;margin-bottom:1.6rem;letter-spacing:.03em">Enter your PIN to continue</div>
     <input id="pin-input" type="password" inputmode="numeric" maxlength="12" placeholder="PIN" autocomplete="off"
       style="width:100%;padding:10px 13px;border:1px solid rgba(255,255,255,0.12);border-radius:8px;background:#222220;color:#eeeee6;font-size:16px;font-family:'DM Sans',sans-serif;text-align:center;letter-spacing:.2em;margin-bottom:.7rem;outline:none"
@@ -616,6 +618,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 // ═══════════════════════════════════════════════════════
 const PIN_HASH = '782e82d6a0037600c1a26b3f3634e2bbd911c00709a471e41f73322af97e94f4';
 
+// ENCRYPTED GIST PAYLOAD — baked in at setup time via encryptGistPayload().
+// Empty string = opt-out (uses existing localStorage token behavior).
+// Format: base64( iv[12] || salt[16] || ciphertext )
+const ENCRYPTED_GIST_PAYLOAD = '';
+
 (function initPinGate(){
   if(sessionStorage.getItem('ld_auth')==='1'){
     var g=document.getElementById('pin-gate');if(g)g.style.display='none';
@@ -624,6 +631,47 @@ const PIN_HASH = '782e82d6a0037600c1a26b3f3634e2bbd911c00709a471e41f73322af97e94
   // Gate remains visible; input focus
   setTimeout(function(){var p=document.getElementById('pin-input');if(p)p.focus();},100);
 })();
+
+// ─── PBKDF2 key derivation ────────────────────────────
+async function deriveKey(pin, salt){
+  var enc=new TextEncoder();
+  var keyMaterial=await crypto.subtle.importKey('raw',enc.encode(pin),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2',salt:salt,iterations:100000,hash:'SHA-256'},
+    keyMaterial,{name:'AES-GCM',length:256},false,['encrypt','decrypt']
+  );
+}
+
+// ─── ENCRYPT (one-time setup) ─────────────────────────
+// Call encryptGistPayload(pin, token, gistId) in console with ?setup=1,
+// copy the output, paste as ENCRYPTED_GIST_PAYLOAD above, redeploy.
+async function encryptGistPayload(pin, token, gistId){
+  var salt=crypto.getRandomValues(new Uint8Array(16));
+  var iv=crypto.getRandomValues(new Uint8Array(12));
+  var key=await deriveKey(pin, salt);
+  var enc=new TextEncoder();
+  var ct=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,enc.encode(JSON.stringify({token:token,gistId:gistId})));
+  // Pack: iv(12) + salt(16) + ciphertext
+  var combined=new Uint8Array(12+16+ct.byteLength);
+  combined.set(iv,0);combined.set(salt,12);combined.set(new Uint8Array(ct),28);
+  var b64=btoa(String.fromCharCode.apply(null,combined));
+  console.log('[Setup] Paste this as ENCRYPTED_GIST_PAYLOAD:\n'+b64);
+  return b64;
+}
+
+// ─── DECRYPT (on every PIN unlock) ───────────────────
+async function decryptGistPayload(pin){
+  if(!ENCRYPTED_GIST_PAYLOAD)return null; // opt-out — skip silently
+  try{
+    var bytes=Uint8Array.from(atob(ENCRYPTED_GIST_PAYLOAD),function(c){return c.charCodeAt(0);});
+    var iv=bytes.slice(0,12);
+    var salt=bytes.slice(12,28);
+    var ct=bytes.slice(28);
+    var key=await deriveKey(pin,salt);
+    var plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,ct);
+    return JSON.parse(new TextDecoder().decode(plain));
+  }catch(e){return null;} // wrong pin or payload not set — fail silently
+}
 
 async function checkPin(){
   var val=document.getElementById('pin-input').value;
@@ -634,6 +682,15 @@ async function checkPin(){
     sessionStorage.setItem('ld_auth','1');
     var g=document.getElementById('pin-gate');
     if(g){g.style.transition='opacity .35s';g.style.opacity='0';setTimeout(function(){g.style.display='none';},350);}
+    // Decrypt Gist credentials and inject into localStorage if payload is set
+    var creds=await decryptGistPayload(val);
+    if(creds&&creds.token){
+      localStorage.setItem(SK_GIST,creds.token);
+      var tokenEl=document.getElementById('gist-token');if(tokenEl)tokenEl.value=creds.token;
+    }
+    if(creds&&creds.gistId){
+      localStorage.setItem(SK_GIST_ID,creds.gistId);
+    }
     // Auto-pull from Gist on unlock
     autoGistPull();
   } else {
@@ -642,6 +699,31 @@ async function checkPin(){
     document.getElementById('pin-input').focus();
   }
 }
+
+// ─── SETUP PANEL (?setup=1) ───────────────────────────
+(function initSetupPanel(){
+  if(new URLSearchParams(window.location.search).get('setup')!=='1')return;
+  var panel=document.createElement('div');
+  panel.style.cssText='position:fixed;bottom:1rem;right:1rem;z-index:999998;background:#1c1c19;border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:1.1rem 1.3rem;width:340px;box-shadow:0 8px 40px rgba(0,0,0,.7);font-family:DM Sans,sans-serif;font-size:12.5px;color:#eeeee6';
+  panel.innerHTML='<div style="font-size:13px;font-weight:500;margin-bottom:.75rem;color:#eeeee6">⚙️ Gist Payload Encryptor</div>'
+    +'<div style="display:flex;flex-direction:column;gap:7px">'
+    +'<input id="sp-pin" type="password" placeholder="PIN" style="padding:6px 9px;border:1px solid rgba(255,255,255,.12);border-radius:6px;background:#222220;color:#eeeee6;font-size:12.5px;outline:none">'
+    +'<input id="sp-token" type="text" placeholder="GitHub token (ghp_...)" style="padding:6px 9px;border:1px solid rgba(255,255,255,.12);border-radius:6px;background:#222220;color:#eeeee6;font-size:12.5px;outline:none">'
+    +'<input id="sp-gistid" type="text" placeholder="Gist ID (optional)" style="padding:6px 9px;border:1px solid rgba(255,255,255,.12);border-radius:6px;background:#222220;color:#eeeee6;font-size:12.5px;outline:none">'
+    +'<button id="sp-btn" style="padding:7px;background:#eeeee6;color:#131310;border:none;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif">Encrypt &amp; Copy</button>'
+    +'<textarea id="sp-out" rows="3" readonly placeholder="Output appears here…" style="padding:6px 9px;border:1px solid rgba(255,255,255,.12);border-radius:6px;background:#131310;color:#a6a69a;font-size:10.5px;font-family:monospace;resize:none;outline:none"></textarea>'
+    +'</div>';
+  document.body.appendChild(panel);
+  document.getElementById('sp-btn').addEventListener('click',async function(){
+    var pin=document.getElementById('sp-pin').value.trim();
+    var token=document.getElementById('sp-token').value.trim();
+    var gistId=document.getElementById('sp-gistid').value.trim();
+    if(!pin||!token){document.getElementById('sp-out').value='PIN and token are required.';return;}
+    var result=await encryptGistPayload(pin,token,gistId);
+    document.getElementById('sp-out').value=result;
+    try{await navigator.clipboard.writeText(result);document.getElementById('sp-out').placeholder='Copied!';}catch(e){}
+  });
+})();
 
 // ═══════════════════════════════════════════════════════
 // CONSTANTS — v8 permanent storage keys
@@ -1273,8 +1355,20 @@ function genUpdatePrompt(){
   var existing=contacts.map(function(c){return c.name+' ('+c.type+', '+c.region+')';}).join(', ');
   var today=new Date().toISOString().split('T')[0];
   var customRolesList=customTypes.length?' Custom roles in use: '+customTypes.join(', ')+'.':'';
-  var prompt='CRITICAL INSTRUCTION: Return ONLY a valid JSON object. Do NOT create any UI, widgets, HTML, React components, dashboards, or application interfaces of any kind. Do NOT explain your reasoning. Do NOT add any text before or after the JSON. Your entire response must be the JSON object and nothing else.\n\nYou are a data extraction assistant for a legal networking directory. Today is '+today+'.\nExisting contacts (for reference): '+existing+'\nAvailable types: Judge, Attorney, School, Professor, Other'+customRolesList+'\n\nParse the raw notes below into a structured contact record. Return ONLY this JSON:\n\n{\n  "name": "",\n  "type": "one of the available types above",\n  "role": "",\n  "region": "",\n  "rel": "new | warm | strong | mentor",\n  "email": "",\n  "phone": "",\n  "linkedin": "",\n  "connected": "",\n  "practice": "",\n  "notes": "",\n  "fuDate": "YYYY-MM-DD or empty string",\n  "fuNote": "",\n  "lastContact": "YYYY-MM-DD or empty string",\n  "emailCount": 0,\n  "lastNote": ""\n}\n\nRules:\n- type: choose the best match from available types. IMPORTANT: if the person does not clearly fit Judge, Attorney, School, or Professor, or any custom role listed, use "Other". Never guess or force-fit an unclear role into a specific category.\n- rel: new=just met, warm=1-2 interactions, strong=ongoing, mentor=key advocate\n- connected: how we met (e.g. "DEI Law Panel, November 2025")\n- practice: 2-3 areas comma-separated\n- notes: clean 2-3 sentence bio\n- fuDate: calculate from today if relative (e.g. "in two weeks" from '+today+')\n- lastContact: date of most recent interaction mentioned\n- emailCount: number of emails/interactions if mentioned\n- lastNote: brief description of last interaction\n\nRAW NOTES:\n'+raw;
-  navigator.clipboard.writeText(prompt).then(function(){document.getElementById('update-prompt-box').style.display='block';toast('Prompt copied to clipboard','ok');}).catch(function(){document.getElementById('update-prompt-box').style.display='block';toast('Prompt generated','info');});
+
+  // Detect LinkedIn URL in raw notes
+  var linkedinMatch=raw.match(/https?:\/\/(?:www\.)?linkedin\.com\/in\/[\w\-]+\/?/i);
+  var linkedinUrl=linkedinMatch?linkedinMatch[0]:null;
+  var linkedinSection=linkedinUrl
+    ? '\n\nLINKEDIN ENRICHMENT REQUIRED: A LinkedIn profile URL was provided: '+linkedinUrl+'\nOpen this LinkedIn profile URL and extract any relevant professional information to enrich the "notes" field. Include: current role and employer, prior experience, education, notable achievements, and any other details visible on the profile. Summarize into a 2-4 sentence professional bio in the "notes" field, combining the LinkedIn profile content with the raw notes below. Also set the "linkedin" field to this URL exactly. If the URL cannot be accessed, fill notes from raw notes only and still set linkedin to the URL.'
+    : '';
+
+  var prompt='CRITICAL INSTRUCTION: Return ONLY a valid JSON object. Do NOT create any UI, widgets, HTML, React components, dashboards, or application interfaces of any kind. Do NOT explain your reasoning. Do NOT add any text before or after the JSON. Your entire response must be the JSON object and nothing else.\n\nYou are a data extraction assistant for a legal networking directory. Today is '+today+'.\nExisting contacts (for reference): '+existing+'\nAvailable types: Judge, Attorney, School, Professor, Other'+customRolesList+linkedinSection+'\n\nParse the raw notes below into a structured contact record. Return ONLY this JSON:\n\n{\n  "name": "",\n  "type": "one of the available types above",\n  "role": "",\n  "region": "",\n  "rel": "new | warm | strong | mentor",\n  "email": "",\n  "phone": "",\n  "linkedin": "",\n  "connected": "",\n  "practice": "",\n  "notes": "",\n  "fuDate": "YYYY-MM-DD or empty string",\n  "fuNote": "",\n  "lastContact": "YYYY-MM-DD or empty string",\n  "emailCount": 0,\n  "lastNote": ""\n}\n\nRules:\n- type: choose the best match from available types. IMPORTANT: if the person does not clearly fit Judge, Attorney, School, or Professor, or any custom role listed, use "Other". Never guess or force-fit an unclear role into a specific category.\n- rel: new=just met, warm=1-2 interactions, strong=ongoing, mentor=key advocate\n- connected: how we met (e.g. "DEI Law Panel, November 2025")\n- practice: 2-3 areas comma-separated\n- notes: clean 2-3 sentence bio'+(linkedinUrl?' enriched from the LinkedIn profile above if accessible':'')+'\n- fuDate: calculate from today if relative (e.g. "in two weeks" from '+today+')\n- lastContact: date of most recent interaction mentioned\n- emailCount: number of emails/interactions if mentioned\n- lastNote: brief description of last interaction\n- linkedin: if a LinkedIn URL is present in the raw notes or was extracted above, set this field to that URL exactly\n\nRAW NOTES:\n'+raw;
+  navigator.clipboard.writeText(prompt).then(function(){
+    document.getElementById('update-prompt-box').style.display='block';
+    if(linkedinUrl)toast('Prompt copied — LinkedIn detected, Claude will enrich notes from profile','ok',5000);
+    else toast('Prompt copied to clipboard','ok');
+  }).catch(function(){document.getElementById('update-prompt-box').style.display='block';toast('Prompt generated','info');});
 }
 function importFromClaude(){
   var raw=document.getElementById('claude-json').value.trim();
