@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>function onGoogleLibraryLoad(){if(typeof gcalInitUI==='function')gcalInitUI();}</script>
 <style>
 /* ── FORCED DARK MODE — ignores OS/browser preference ── */
 :root{
@@ -297,7 +299,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
     <button class="btn btn-primary btn-sm" onclick="goPage('add')"><i class="ti ti-plus"></i>Add</button>
   </div>
-  <div class="topbar" id="tb-reminders" style="display:none"><div class="page-title">Upcoming Follow-ups</div><button class="btn btn-ghost btn-sm" onclick="openCalSyncModal()" style="margin-left:auto"><i class="ti ti-calendar-plus"></i>Sync all to Google Calendar</button></div>
+  <div class="topbar" id="tb-reminders" style="display:none"><div class="page-title">Upcoming Follow-ups</div><button class="btn btn-ghost btn-sm" onclick="gcalSyncAll()" style="margin-left:auto"><i class="ti ti-calendar-plus"></i>Sync all to Google Calendar</button></div>
   <div class="topbar" id="tb-add" style="display:none"><div class="page-title">Add Contact (Manually)</div></div>
   <div class="topbar" id="tb-update" style="display:none"><div class="page-title">Easy-Add via Claude</div></div>
   <div class="topbar" id="tb-email" style="display:none"><div class="page-title">Draft Email via Claude</div></div>
@@ -1085,7 +1087,8 @@ function renderCard(c){
     +'<div class="card-actions">'
     +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEdit('+c.id+')"><i class="ti ti-edit"></i>Edit</button>'
     +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();jumpEmail('+c.id+')"><i class="ti ti-mail"></i>Draft email</button>'
-    +(c.fuDate&&daysDiff(c.fuDate)>=0&&!c.calId?'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openGCalForContact('+c.id+')"><i class="ti ti-calendar-plus"></i>Add to calendar</button>':'')
+    +(c.fuDate&&daysDiff(c.fuDate)>=0&&!c.calId?'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();gcalAddForContact('+c.id+')"><i class="ti ti-calendar-plus"></i>Add to calendar</button>':'')
+    +(c.fuDate&&daysDiff(c.fuDate)>=0&&c.calId?'<button class="btn btn-ghost btn-sm" style="color:var(--red-text)" onclick="event.stopPropagation();gcalRemoveForContact('+c.id+')"><i class="ti ti-calendar-minus"></i>Remove from calendar</button>':'')
     +'</div></div></div>';
 }
 
@@ -1155,8 +1158,7 @@ function openGCalForDate(name,note,date){
   var url='https://calendar.google.com/calendar/render?action=TEMPLATE'
     +'&text='+encodeURIComponent('Follow up — '+name)
     +'&dates='+d+'/'+d
-    +'&details='+details
-    +'&crm=POPUP&crm_minutes=1440';  // 1440 min = 24 hours prior
+    +'&details='+details;
   window.open(url,'_blank');
   toast('Opening Google Calendar…','info');
 }
@@ -1174,7 +1176,7 @@ function openCalSyncModal(){
     list.innerHTML=pending.map(function(c){
       var d=c.fuDate.replace(/-/g,'');
       var details=(c.fuNote||'Follow up with '+c.name)+'\n\n⏰ Reminder: Follow up on '+c.fuDate+'\n\nSet a 1-day reminder in Google Calendar after adding this event.';
-      var url='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('Follow up — '+c.name)+'&dates='+d+'/'+d+'&details='+encodeURIComponent(details)+'&crm=POPUP&crm_minutes=1440';
+      var url='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('Follow up — '+c.name)+'&dates='+d+'/'+d+'&details='+encodeURIComponent(details);
       var dd=daysDiff(c.fuDate);
       var urgBg=dd===0?'var(--red-bg)':dd<=7?'var(--amber-bg)':'var(--surface2)';
       var urgClr=dd===0?'var(--red-text)':dd<=7?'var(--amber-text)':'var(--text2)';
@@ -1460,18 +1462,159 @@ function buildEmailPrompt(){
 
 
 // ═══════════════════════════════════════════════════════
-// GOOGLE CALENDAR — URL link method only (no OAuth)
+// GOOGLE CALENDAR — OAuth via Google Identity Services
 // ═══════════════════════════════════════════════════════
+const GCAL_CLIENT_ID='889108441624-rqqqdc9rkttur56cpup4f7rd054jmio8.apps.googleusercontent.com';
+const GCAL_SCOPE='https://www.googleapis.com/auth/calendar.events';
 var gcalAccessToken=null;
 var gcalTokenExpiry=0;
-function gcalInitUI(){/* no-op — OAuth removed, using link method */}
-function gcalSetConnected(){}
-function gcalConnect(){toast('Calendar uses one-click links — no sign-in needed.','info');}
-function gcalDisconnect(){}
-function gcalEnsureToken(){return null;}
-async function gcalCreateEvent(){return null;}
-async function gcalAddForContact(id){openGCalForContact(id);}
-async function gcalSyncAll(){openCalSyncModal();}
+var gcalTokenClient=null;
+var gcalPendingAction=null; // function to call after token obtained
+
+function gcalInitUI(){
+  if(typeof google==='undefined'||!google.accounts)return;
+  gcalTokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:GCAL_CLIENT_ID,
+    scope:GCAL_SCOPE,
+    callback:function(resp){
+      if(resp.error){toast('Google sign-in failed: '+resp.error,'error');gcalPendingAction=null;return;}
+      gcalAccessToken=resp.access_token;
+      gcalTokenExpiry=Date.now()+(resp.expires_in-60)*1000;
+      gcalSetConnected(true);
+      toast('Google Calendar connected','success');
+      if(gcalPendingAction){var fn=gcalPendingAction;gcalPendingAction=null;fn();}
+    }
+  });
+  // Restore connected state if token still valid
+  gcalSetConnected(gcalTokenExpiry>Date.now()&&!!gcalAccessToken);
+}
+
+function gcalSetConnected(on){
+  document.querySelectorAll('.gcal-connect-btn').forEach(function(b){
+    b.innerHTML=on?'<i class="ti ti-calendar-check"></i>Calendar connected':'<i class="ti ti-calendar"></i>Connect Google Calendar';
+    b.classList.toggle('btn-primary',!on);
+    b.classList.toggle('btn-success',on);
+    b.onclick=on?gcalDisconnect:gcalConnect;
+  });
+}
+
+function gcalConnect(){
+  if(!gcalTokenClient){
+    // GSI not loaded yet — try init then connect
+    if(typeof google!=='undefined'&&google.accounts){gcalInitUI();setTimeout(gcalConnect,300);}
+    else{toast('Google sign-in not ready yet, try again in a moment','info');}
+    return;
+  }
+  gcalTokenClient.requestAccessToken({prompt:'consent'});
+}
+
+function gcalDisconnect(){
+  if(gcalAccessToken){google.accounts.oauth2.revoke(gcalAccessToken,function(){});}
+  gcalAccessToken=null;gcalTokenExpiry=0;
+  gcalSetConnected(false);
+  toast('Google Calendar disconnected','info');
+}
+
+function gcalEnsureToken(onReady){
+  if(gcalAccessToken&&Date.now()<gcalTokenExpiry){onReady();return;}
+  // Token expired or missing — request silently first
+  if(!gcalTokenClient){gcalInitUI();}
+  gcalPendingAction=onReady;
+  gcalTokenClient.requestAccessToken({prompt:''});
+}
+
+async function gcalCreateEvent(c){
+  // c = contact object with fuDate, fuNote, name
+  if(!c.fuDate)return null;
+  var startDate=c.fuDate; // YYYY-MM-DD
+  // end date = next day (all-day event)
+  var end=new Date(startDate);end.setDate(end.getDate()+1);
+  var endDate=end.toISOString().slice(0,10);
+  var body={
+    summary:'Follow up — '+c.name,
+    description:(c.fuNote||'Follow up with '+c.name),
+    start:{date:startDate},
+    end:{date:endDate},
+    reminders:{useDefault:false,overrides:[{method:'popup',minutes:1440}]}
+  };
+  var resp=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+gcalAccessToken,'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  if(!resp.ok){
+    var err=await resp.json().catch(function(){return {};});
+    if(resp.status===401){gcalAccessToken=null;gcalTokenExpiry=0;}
+    throw new Error(err.error&&err.error.message?err.error.message:'Calendar API error '+resp.status);
+  }
+  var data=await resp.json();
+  return data.id||null;
+}
+
+async function gcalDeleteEvent(calId){
+  if(!calId)return;
+  var resp=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/'+encodeURIComponent(calId),{
+    method:'DELETE',
+    headers:{'Authorization':'Bearer '+gcalAccessToken}
+  });
+  if(resp.status===401){gcalAccessToken=null;gcalTokenExpiry=0;throw new Error('Auth expired');}
+  // 204 = success, 404 = already gone — both are fine
+}
+
+async function gcalAddForContact(id){
+  var c=contacts.find(function(x){return x.id===id;});
+  if(!c||!c.fuDate){toast('No follow-up date set','info');return;}
+  gcalEnsureToken(async function(){
+    try{
+      toast('Adding to Google Calendar…','info');
+      var eventId=await gcalCreateEvent(c);
+      var idx=contacts.findIndex(function(x){return x.id===id;});
+      if(idx>=0){contacts[idx].calId=eventId||'added';save();}
+      renderDir();renderSidebar();
+      toast('Added to Google Calendar with 1-day reminder','success');
+    }catch(e){
+      toast('Calendar error: '+e.message,'error');
+    }
+  });
+}
+
+async function gcalRemoveForContact(id){
+  var c=contacts.find(function(x){return x.id===id;});
+  if(!c||!c.calId)return;
+  gcalEnsureToken(async function(){
+    try{
+      await gcalDeleteEvent(c.calId);
+      var idx=contacts.findIndex(function(x){return x.id===id;});
+      if(idx>=0){contacts[idx].calId='';save();}
+      renderDir();renderSidebar();
+      toast('Removed from Google Calendar','info');
+    }catch(e){
+      toast('Calendar error: '+e.message,'error');
+    }
+  });
+}
+
+async function gcalSyncAll(){
+  var pending=contacts.filter(function(c){return c.fuDate&&daysDiff(c.fuDate)>=0&&!c.calId;});
+  if(!pending.length){toast('All follow-ups already on calendar','info');return;}
+  gcalEnsureToken(async function(){
+    toast('Syncing '+pending.length+' event(s) to Google Calendar…','info');
+    var added=0,failed=0;
+    for(var i=0;i<pending.length;i++){
+      var c=pending[i];
+      try{
+        var eventId=await gcalCreateEvent(c);
+        var idx=contacts.findIndex(function(x){return x.id===c.id;});
+        if(idx>=0){contacts[idx].calId=eventId||'added';}
+        added++;
+      }catch(e){failed++;}
+    }
+    save();renderDir();renderSidebar();
+    var msg=added+' event'+(added!==1?'s':'')+' added to Google Calendar';
+    if(failed)msg+=' ('+failed+' failed)';
+    toast(msg,failed?'error':'success');
+  });
+}
 
 // ═══════════════════════════════════════════════════════
 // INIT
