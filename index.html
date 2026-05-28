@@ -473,6 +473,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="fcard">
         <div class="ftitle"><i class="ti ti-cloud"></i>Sync Manually</div>
 
+        <!-- Google Calendar OAuth -->
+        <div class="gcal-connect-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem">
+            <i class="ti ti-calendar" style="font-size:16px;color:var(--accent-text)"></i>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--text)">Google Calendar</div>
+              <div style="font-size:11.5px;color:var(--text2)">Connect once to silently add follow-up events with 1-day reminders.</div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm gcal-connect-btn"><i class="ti ti-calendar"></i>Connect Google Calendar</button>
+          <div id="gcal-connect-status" class="gcal-connect-status" style="display:none"></div>
+        </div>
+
         <!-- Option 1: GitHub Gist -->
         <div class="sync-card">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:.6rem">
@@ -1497,8 +1510,15 @@ function gcalSetConnected(on){
     b.innerHTML=on?'<i class="ti ti-calendar-check"></i>Calendar connected':'<i class="ti ti-calendar"></i>Connect Google Calendar';
     b.classList.toggle('btn-primary',!on);
     b.classList.toggle('btn-success',on);
+    b.classList.toggle('btn-ghost',false);
     b.onclick=on?gcalDisconnect:gcalConnect;
   });
+  var st=document.getElementById('gcal-connect-status');
+  if(st){
+    st.style.display=on?'flex':'none';
+    st.className='gcal-connect-status'+(on?' gcal-connected':'');
+    st.innerHTML=on?'<i class="ti ti-check" style="font-size:13px"></i>Connected — Add to Calendar buttons now work automatically.':'';
+  }
 }
 
 function gcalConnect(){
@@ -1588,6 +1608,7 @@ async function gcalDeleteEvent(calId){
 async function gcalAddForContact(id){
   var c=contacts.find(function(x){return x.id===id;});
   if(!c||!c.fuDate){toast('No follow-up date set','info');return;}
+  if(!gcalTokenClient){toast('Connect Google Calendar first — go to Sync Manually.','info');return;}
   gcalEnsureToken(async function(){
     try{
       toast('Adding to Google Calendar…','info');
@@ -1595,7 +1616,7 @@ async function gcalAddForContact(id){
       var idx=contacts.findIndex(function(x){return x.id===id;});
       if(idx>=0){contacts[idx].calId=eventId||'added';save();}
       renderDir();renderSidebar();
-      toast('Added to Google Calendar with 1-day reminder','success');
+      toast('Added to Google Calendar with 1-day reminder ✓','success');
     }catch(e){
       toast('Calendar error: '+e.message,'error');
     }
@@ -1605,15 +1626,26 @@ async function gcalAddForContact(id){
 async function gcalRemoveForContact(id){
   var c=contacts.find(function(x){return x.id===id;});
   if(!c||!c.calId)return;
+  var doRemove=function(){
+    var idx=contacts.findIndex(function(x){return x.id===id;});
+    if(idx>=0){contacts[idx].calId='';save();}
+    renderDir();renderSidebar();
+  };
+  if(c.calId==='added'||c.calId==='url-opened'){
+    // No real event ID to delete — just clear tracking
+    doRemove();
+    toast('Removed from calendar tracking.','info');
+    return;
+  }
+  if(!gcalTokenClient){doRemove();toast('Removed from calendar tracking.','info');return;}
   gcalEnsureToken(async function(){
     try{
       await gcalDeleteEvent(c.calId);
-      var idx=contacts.findIndex(function(x){return x.id===id;});
-      if(idx>=0){contacts[idx].calId='';save();}
-      renderDir();renderSidebar();
+      doRemove();
       toast('Removed from Google Calendar','info');
     }catch(e){
-      toast('Calendar error: '+e.message,'error');
+      doRemove();
+      toast('Cleared locally (could not reach Calendar API)','info');
     }
   });
 }
@@ -1621,6 +1653,7 @@ async function gcalRemoveForContact(id){
 async function gcalSyncAll(){
   var pending=contacts.filter(function(c){return c.fuDate&&daysDiff(c.fuDate)>=0&&!c.calId;});
   if(!pending.length){toast('All follow-ups already on calendar','info');return;}
+  if(!gcalTokenClient){toast('Connect Google Calendar first — go to Sync Manually.','info');return;}
   gcalEnsureToken(async function(){
     toast('Syncing '+pending.length+' event(s) to Google Calendar…','info');
     var added=0,failed=0;
