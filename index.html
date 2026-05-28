@@ -482,7 +482,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
               <div style="font-size:11.5px;color:var(--text2)">Connect once to silently add follow-up events with 1-day reminders.</div>
             </div>
           </div>
-          <button class="btn btn-primary btn-sm gcal-connect-btn"><i class="ti ti-calendar"></i>Connect Google Calendar</button>
+          <button class="btn btn-primary btn-sm gcal-connect-btn" onclick="gcalConnect()"><i class="ti ti-calendar"></i>Connect Google Calendar</button>
           <div id="gcal-connect-status" class="gcal-connect-status" style="display:none"></div>
         </div>
 
@@ -1493,7 +1493,12 @@ function gcalInitUI(){
     client_id:GCAL_CLIENT_ID,
     scope:GCAL_SCOPE,
     callback:function(resp){
-      if(resp.error){toast('Google sign-in failed: '+resp.error,'error');gcalPendingAction=null;return;}
+      if(resp.error){
+        var msg=resp.error==='popup_closed_by_user'?'Sign-in cancelled.':resp.error==='access_denied'?'Access denied — make sure you allow Calendar access.':'Google sign-in failed: '+resp.error+(resp.error_description?' ('+resp.error_description+')':'');
+        toast(msg,'error');
+        console.error('GCal OAuth error:',resp);
+        gcalPendingAction=null;return;
+      }
       gcalAccessToken=resp.access_token;
       gcalTokenExpiry=Date.now()+(resp.expires_in-60)*1000;
       gcalSetConnected(true);
@@ -1523,8 +1528,26 @@ function gcalSetConnected(on){
 
 function gcalConnect(){
   if(!gcalTokenClient){
-    if(typeof google!=='undefined'&&google.accounts){gcalInitUI();setTimeout(gcalConnect,300);}
-    else{toast('Google sign-in not ready yet, try again in a moment','info');}
+    if(typeof google!=='undefined'&&google.accounts){
+      gcalInitUI();
+      if(gcalTokenClient){gcalTokenClient.requestAccessToken({prompt:'select_account'});}
+      else{toast('Google sign-in not ready yet, try again in a moment','info');}
+    } else {
+      // GSI script still loading — poll for it
+      toast('Connecting to Google…','info');
+      var waited=0;
+      var poll=setInterval(function(){
+        waited+=200;
+        if(typeof google!=='undefined'&&google.accounts){
+          clearInterval(poll);
+          gcalInitUI();
+          if(gcalTokenClient){gcalTokenClient.requestAccessToken({prompt:'select_account'});}
+        } else if(waited>=8000){
+          clearInterval(poll);
+          toast('Could not reach Google sign-in. Check your connection and try again.','error');
+        }
+      },200);
+    }
     return;
   }
   gcalTokenClient.requestAccessToken({prompt:'select_account'});
