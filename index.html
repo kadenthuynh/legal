@@ -1500,12 +1500,11 @@ function gcalSetConnected(on){
 
 function gcalConnect(){
   if(!gcalTokenClient){
-    // GSI not loaded yet — try init then connect
     if(typeof google!=='undefined'&&google.accounts){gcalInitUI();setTimeout(gcalConnect,300);}
     else{toast('Google sign-in not ready yet, try again in a moment','info');}
     return;
   }
-  gcalTokenClient.requestAccessToken({prompt:'consent'});
+  gcalTokenClient.requestAccessToken({prompt:'select_account'});
 }
 
 function gcalDisconnect(){
@@ -1517,10 +1516,13 @@ function gcalDisconnect(){
 
 function gcalEnsureToken(onReady){
   if(gcalAccessToken&&Date.now()<gcalTokenExpiry){onReady();return;}
-  // Token expired or missing — request silently first
-  if(!gcalTokenClient){gcalInitUI();}
+  // Need a fresh token — initialize client if needed, then prompt
+  if(!gcalTokenClient){
+    if(typeof google!=='undefined'&&google.accounts){gcalInitUI();}
+    else{toast('Google sign-in not ready, try again in a moment','info');return;}
+  }
   gcalPendingAction=onReady;
-  gcalTokenClient.requestAccessToken({prompt:''});
+  gcalTokenClient.requestAccessToken({prompt:'consent'});
 }
 
 async function gcalCreateEvent(c){
