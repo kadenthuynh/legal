@@ -1355,8 +1355,8 @@ function saveEdit(){
   var newFuDate=contacts[idx].fuDate||'';
   // If fuDate changed and there was a calendar event, delete old and create new
   if(oldCalId&&oldFuDate!==newFuDate&&gcalTokenClient){
-    var cSnap=Object.assign({},contacts[idx]);
-    contacts[idx].calId='';
+    var cSnap=Object.assign({},contacts[idx]); // already has newFuDate applied
+    // Keep calId intact until we confirm the new event is created
     save();updateFUCount();closeModal();renderDir();toast('Contact updated — syncing calendar…','info');
     gcalEnsureToken(async function(){
       try{
@@ -1369,10 +1369,15 @@ function saveEdit(){
           if(i2>=0){contacts[i2].calId=eventId||'added';save();renderDir();}
           toast('Calendar event updated to '+fmtDate(newFuDate)+' ✓','success');
         } else {
+          // Date cleared or in the past — remove the event reference
+          var i2=contacts.findIndex(function(x){return x.id===editingId;});
+          if(i2>=0){contacts[i2].calId='';save();renderDir();}
           toast('Calendar event removed (no upcoming date)','info');
-          renderDir();
         }
       }catch(e){
+        // Re-create failed — clear calId since old event was already deleted
+        var i2=contacts.findIndex(function(x){return x.id===editingId;});
+        if(i2>=0){contacts[i2].calId='';save();renderDir();}
         toast('Contact saved — could not update calendar: '+e.message,'error');
       }
     });
