@@ -314,6 +314,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <button class="dir-tab" id="dtab-roles" onclick="setDirTab('roles')" style="padding:7px 16px;font-size:12.5px;font-weight:500;cursor:pointer;background:none;border:none;color:var(--text2);border-bottom:2px solid transparent;font-family:'DM Sans',sans-serif;margin-bottom:-1px">Manage Roles</button>
       </div>
       <div id="dir-contacts-panel">
+        <div id="bulk-bar" style="display:none;align-items:center;gap:8px;padding:8px 11px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:var(--radius-sm);margin-bottom:.75rem;flex-wrap:wrap">
+          <span id="bulk-count" style="font-size:12px;font-weight:500;color:var(--accent-text);margin-right:2px"></span>
+          <button class="btn btn-ghost btn-sm" onclick="bulkDraftEmail()"><i class="ti ti-mail"></i>Draft Email</button>
+          <button class="btn btn-ghost btn-sm" onclick="bulkAddToCalendar()"><i class="ti ti-calendar-plus"></i>Add to Calendar</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearSelection()" style="margin-left:auto"><i class="ti ti-x"></i>Clear</button>
+        </div>
         <div class="stats-row" id="sbar"></div>
         <div id="dircontent"></div>
       </div>
@@ -803,6 +809,7 @@ var typeFilter = null;
 var editingId = null;
 var selectedRecipients = [];
 var contactsMenuOpen = false;
+var selectedContacts = [];
 
 // ═══════════════════════════════════════════════════════
 // DEFAULT DATA
@@ -1087,8 +1094,11 @@ function renderCard(c){
   var ph=c.phone?'<a href="tel:'+c.phone+'" onclick="event.stopPropagation()"><i class="ti ti-phone" style="font-size:11px"></i>'+c.phone+'</a>':'';
   var li=c.linkedin?'<a href="'+c.linkedin+'" target="_blank" onclick="event.stopPropagation()"><i class="ti ti-brand-linkedin" style="font-size:11px"></i></a>':'';
   var commNote=(c.emailCount&&c.emailCount>0)?'<span style="font-size:9.5px;color:var(--text3);margin-left:3px">'+c.emailCount+' email'+(c.emailCount!==1?'s':'')+'</span>':'';
-  return '<div class="card '+barClass+'" id="card-'+c.id+'" style="'+barStyle+'">'
-    +'<div class="card-face" onclick="toggleCard('+c.id+')">'
+  var isSel=selectedContacts.indexOf(c.id)>=0;
+  var selStyle=isSel?'background:rgba(90,125,212,0.08);border-color:rgba(90,125,212,0.35);':'';
+  return '<div class="card '+barClass+'" id="card-'+c.id+'" style="'+barStyle+selStyle+'">'
+    +'<div class="card-face" onclick="toggleCard('+c.id+')" style="position:relative">'
+    +'<div onclick="event.stopPropagation();toggleSelectContact('+c.id+')" style="flex-shrink:0;width:13px;height:13px;border-radius:3px;border:1.5px solid '+(isSel?'var(--accent)':'var(--border-strong)')+';background:'+(isSel?'var(--accent)':'transparent')+';display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s">'+(isSel?'<i class="ti ti-check" style="font-size:8px;color:var(--bg)"></i>':'')+'</div>'
     +'<div class="type-dot" style="background:'+dotColor(c.type)+'"></div>'
     +'<div class="card-main"><div class="card-name">'+c.name+'</div><div class="card-sub">'+c.role+'</div></div>'
     +'<div class="card-meta">'+(chip||'')+cb+'<div class="clinks">'+el+ph+li+'</div>'
@@ -1102,13 +1112,73 @@ function renderCard(c){
     +(c.fuDate&&daysDiff(c.fuDate)>=0?'<div class="blbl">Follow-up — '+fmtDate(c.fuDate)+(c.calId?' <span class="cal-badge" style="vertical-align:1px"><i class="ti ti-calendar-check" style="font-size:9px"></i></span>':'')+'</div><div class="btxt">'+(c.fuNote||'')+'</div>':'<div class="blbl">Follow-up</div><div class="btxt" style="color:var(--text3)">None planned</div>')
     +'<div class="card-actions">'
     +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEdit('+c.id+')"><i class="ti ti-edit"></i>Edit</button>'
-    +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();jumpEmail('+c.id+')"><i class="ti ti-mail"></i>Draft email</button>'
-    +(c.fuDate&&daysDiff(c.fuDate)>=0&&!c.calId?'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();gcalAddForContact('+c.id+')"><i class="ti ti-calendar-plus"></i>Add to calendar</button>':'')
     +(c.fuDate&&daysDiff(c.fuDate)>=0&&c.calId?'<button class="btn btn-ghost btn-sm" style="color:var(--red-text)" onclick="event.stopPropagation();gcalRemoveForContact('+c.id+')"><i class="ti ti-calendar-minus"></i>Remove from calendar</button>':'')
     +'</div></div></div>';
 }
 
 function toggleCard(id){var b=document.getElementById('body-'+id),ch=document.getElementById('chev-'+id);if(!b)return;var o=b.classList.contains('open');b.classList.toggle('open',!o);ch.classList.toggle('open',!o);}
+
+// ═══════════════════════════════════════════════════════
+// MULTI-SELECT
+// ═══════════════════════════════════════════════════════
+function toggleSelectContact(id){
+  var idx=selectedContacts.indexOf(id);
+  if(idx>=0)selectedContacts.splice(idx,1);
+  else selectedContacts.push(id);
+  updateBulkBar();
+  // Re-render just this card in place
+  var c=contacts.find(function(x){return x.id===id;});
+  if(c){var el=document.getElementById('card-'+id);if(el)el.outerHTML=renderCard(c);}
+}
+function clearSelection(){selectedContacts=[];updateBulkBar();renderDir();}
+function updateBulkBar(){
+  var bar=document.getElementById('bulk-bar');
+  var cnt=document.getElementById('bulk-count');
+  if(!bar)return;
+  if(selectedContacts.length===0){bar.style.display='none';return;}
+  bar.style.display='flex';
+  cnt.textContent=selectedContacts.length+' contact'+(selectedContacts.length!==1?'s':'')+' selected';
+}
+function bulkDraftEmail(){
+  if(!selectedContacts.length){toast('Select at least one contact','info');return;}
+  selectedRecipients=selectedContacts.map(function(id){
+    var c=contacts.find(function(x){return x.id===id;});
+    return c?{id:c.id,name:c.name}:null;
+  }).filter(Boolean);
+  clearSelection();
+  goPage('email');
+}
+function bulkAddToCalendar(){
+  if(!selectedContacts.length){toast('Select at least one contact','info');return;}
+  var toAdd=selectedContacts.map(function(id){return contacts.find(function(x){return x.id===id;});}).filter(function(c){return c&&c.fuDate&&daysDiff(c.fuDate)>=0&&!c.calId;});
+  var skipped=selectedContacts.length-toAdd.length;
+  clearSelection();
+  if(!toAdd.length){toast('No selected contacts have an upcoming follow-up date without a calendar event','info');return;}
+  if(!gcalTokenClient){toast('Connect Google Calendar first — go to Sync Manually.','info');return;}
+  gcalEnsureToken(async function(){
+    toast('Adding '+toAdd.length+' event'+(toAdd.length!==1?'s':'')+' to Google Calendar…','info');
+    var added=0,failed=0;
+    for(var i=0;i<toAdd.length;i++){
+      var c=toAdd[i];
+      try{
+        var eventId=await gcalCreateEvent(c);
+        var idx=contacts.findIndex(function(x){return x.id===c.id;});
+        if(idx>=0){contacts[idx].calId=eventId||'added';}
+        added++;
+      }catch(e){failed++;}
+    }
+    save();renderDir();renderSidebar();
+    var msg=added+' event'+(added!==1?'s':'')+' added to Google Calendar';
+    if(skipped)msg+=' ('+skipped+' skipped — no date or already added)';
+    if(failed)msg+=' ('+failed+' failed)';
+    toast(msg,failed?'error':'success',5000);
+  });
+}
+function openGcalQuickAdd(){
+  // If contacts are selected, use those; otherwise sync all pending
+  if(selectedContacts.length){bulkAddToCalendar();return;}
+  gcalSyncAll();
+}
 
 // ═══════════════════════════════════════════════════════
 // DIRECTORY
@@ -1124,6 +1194,7 @@ function renderDir(){
   }).join('');
   document.getElementById('ct-total').textContent=contacts.length;
   renderSidebar();
+  updateBulkBar();
   var dc=document.getElementById('dircontent');
   if(!f.length){dc.innerHTML='<div class="no-res"><i class="ti ti-search" style="font-size:22px;display:block;margin:0 auto 7px"></i>No contacts match.</div>';return;}
   var html='';
