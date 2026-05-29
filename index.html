@@ -1112,7 +1112,9 @@ function renderCard(c){
     +(c.fuDate&&daysDiff(c.fuDate)>=0?'<div class="blbl">Follow-up — '+fmtDate(c.fuDate)+(c.calId?' <span class="cal-badge" style="vertical-align:1px"><i class="ti ti-calendar-check" style="font-size:9px"></i></span>':'')+'</div><div class="btxt">'+(c.fuNote||'')+'</div>':'<div class="blbl">Follow-up</div><div class="btxt" style="color:var(--text3)">None planned</div>')
     +'<div class="card-actions">'
     +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEdit('+c.id+')"><i class="ti ti-edit"></i>Edit</button>'
-    +(c.fuDate&&daysDiff(c.fuDate)>=0&&c.calId?'<button class="btn btn-ghost btn-sm" style="color:var(--red-text)" onclick="event.stopPropagation();gcalRemoveForContact('+c.id+')"><i class="ti ti-calendar-minus"></i>Remove from calendar</button>':'')
+    +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();jumpEmail('+c.id+')"><i class="ti ti-mail"></i>Draft Email</button>'
+    +(c.fuDate&&daysDiff(c.fuDate)>=0&&!c.calId?'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();gcalAddForContact('+c.id+')"><i class="ti ti-calendar-plus"></i>Add to Calendar</button>':'')
+    +(c.fuDate&&daysDiff(c.fuDate)>=0&&c.calId?'<button class="btn btn-ghost btn-sm" style="color:var(--red-text)" onclick="event.stopPropagation();gcalRemoveForContact('+c.id+')"><i class="ti ti-calendar-minus"></i>Remove from Calendar</button>':'')
     +'</div></div></div>';
 }
 
