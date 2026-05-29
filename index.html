@@ -317,7 +317,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div id="bulk-bar" style="display:none;align-items:center;gap:8px;padding:8px 11px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:var(--radius-sm);margin-bottom:.75rem;flex-wrap:wrap">
           <span id="bulk-count" style="font-size:12px;font-weight:500;color:var(--accent-text);margin-right:2px"></span>
           <button class="btn btn-ghost btn-sm" onclick="bulkDraftEmail()"><i class="ti ti-mail"></i>Draft Email</button>
-          <button class="btn btn-ghost btn-sm" onclick="bulkAddToCalendar()"><i class="ti ti-calendar-plus"></i>Add to Calendar</button>
+          <span id="bulk-cal-btns"><button class="btn btn-ghost btn-sm" onclick="bulkAddToCalendar()"><i class="ti ti-calendar-plus"></i>Add to Calendar</button></span>
           <button class="btn btn-ghost btn-sm" onclick="clearSelection()" style="margin-left:auto"><i class="ti ti-x"></i>Clear</button>
         </div>
         <div class="stats-row" id="sbar"></div>
@@ -1134,10 +1134,19 @@ function clearSelection(){selectedContacts=[];updateBulkBar();renderDir();}
 function updateBulkBar(){
   var bar=document.getElementById('bulk-bar');
   var cnt=document.getElementById('bulk-count');
+  var calBtns=document.getElementById('bulk-cal-btns');
   if(!bar)return;
   if(selectedContacts.length===0){bar.style.display='none';return;}
   bar.style.display='flex';
   cnt.textContent=selectedContacts.length+' contact'+(selectedContacts.length!==1?'s':'')+' selected';
+  if(!calBtns)return;
+  // Determine which contacts have a calendar event vs. not
+  var hasEvent=selectedContacts.filter(function(id){var c=contacts.find(function(x){return x.id===id;});return c&&c.calId;}).length;
+  var noEvent=selectedContacts.length-hasEvent;
+  var html='';
+  if(noEvent>0) html+='<button class="btn btn-ghost btn-sm" onclick="bulkAddToCalendar()"><i class="ti ti-calendar-plus"></i>Add to Calendar</button>';
+  if(hasEvent>0) html+='<button class="btn btn-ghost btn-sm" style="color:var(--red-text)" onclick="bulkRemoveFromCalendar()"><i class="ti ti-calendar-minus"></i>Remove from Calendar</button>';
+  calBtns.innerHTML=html;
 }
 function bulkDraftEmail(){
   if(!selectedContacts.length){toast('Select at least one contact','info');return;}
@@ -1172,6 +1181,41 @@ function bulkAddToCalendar(){
     if(skipped)msg+=' ('+skipped+' skipped — no date or already added)';
     if(failed)msg+=' ('+failed+' failed)';
     toast(msg,failed?'error':'success',5000);
+  });
+}
+function bulkRemoveFromCalendar(){
+  if(!selectedContacts.length){toast('Select at least one contact','info');return;}
+  var toRemove=selectedContacts.map(function(id){return contacts.find(function(x){return x.id===id;});}).filter(function(c){return c&&c.calId;});
+  if(!toRemove.length){toast('No selected contacts have a calendar event','info');return;}
+  clearSelection();
+  if(!gcalTokenClient){
+    // No token client — just clear tracking locally
+    toRemove.forEach(function(c){var idx=contacts.findIndex(function(x){return x.id===c.id;});if(idx>=0)contacts[idx].calId='';});
+    save();renderDir();renderSidebar();
+    toast(toRemove.length+' event'+(toRemove.length!==1?'s':'')+' removed from calendar tracking','info');
+    return;
+  }
+  gcalEnsureToken(async function(){
+    toast('Removing '+toRemove.length+' event'+(toRemove.length!==1?'s':'')+' from Google Calendar…','info');
+    var removed=0,failed=0;
+    for(var i=0;i<toRemove.length;i++){
+      var c=toRemove[i];
+      var idx=contacts.findIndex(function(x){return x.id===c.id;});
+      try{
+        if(c.calId!=='added'&&c.calId!=='url-opened'){
+          await gcalDeleteEvent(c.calId);
+        }
+        if(idx>=0)contacts[idx].calId='';
+        removed++;
+      }catch(e){
+        if(idx>=0)contacts[idx].calId=''; // clear locally even if API fails
+        failed++;
+      }
+    }
+    save();renderDir();renderSidebar();
+    var msg=removed+' event'+(removed!==1?'s':'')+' removed from Google Calendar';
+    if(failed)msg+=' ('+failed+' could not be deleted from API)';
+    toast(msg,failed?'error':'info');
   });
 }
 function openGcalQuickAdd(){
@@ -1302,10 +1346,37 @@ function closeModal(){document.getElementById('edit-modal').classList.remove('op
 function saveEdit(){
   if(!editingId)return;var idx=contacts.findIndex(function(c){return c.id===editingId;});if(idx<0)return;
   var oldFuDate=contacts[idx].fuDate||'';
+  var oldCalId=contacts[idx].calId||'';
   var m={name:'ef-name',type:'ef-type',role:'ef-role',region:'ef-region',email:'ef-email',phone:'ef-phone',linkedin:'ef-linkedin',connected:'ef-connected',practice:'ef-practice',notes:'ef-notes',lastContact:'ef-lastcontact',emailCount:'ef-emailcount',lastNote:'ef-lastnote',fuDate:'ef-fudate',fuNote:'ef-funote'};
   Object.keys(m).forEach(function(k){var el=document.getElementById(m[k]);if(el)contacts[idx][k]=(el.value.trim?el.value.trim():(el.value||''));});
   contacts[idx].emailCount=parseInt(contacts[idx].emailCount)||0;
-  save();updateFUCount();closeModal();renderDir();toast('Contact updated','ok');
+  var newFuDate=contacts[idx].fuDate||'';
+  // If fuDate changed and there was a calendar event, delete old and create new
+  if(oldCalId&&oldFuDate!==newFuDate&&gcalTokenClient){
+    var cSnap=Object.assign({},contacts[idx]);
+    contacts[idx].calId='';
+    save();updateFUCount();closeModal();renderDir();toast('Contact updated — syncing calendar…','info');
+    gcalEnsureToken(async function(){
+      try{
+        if(oldCalId!=='added'&&oldCalId!=='url-opened'){
+          await gcalDeleteEvent(oldCalId).catch(function(){});
+        }
+        if(newFuDate&&daysDiff(newFuDate)>=0){
+          var eventId=await gcalCreateEvent(cSnap);
+          var i2=contacts.findIndex(function(x){return x.id===editingId;});
+          if(i2>=0){contacts[i2].calId=eventId||'added';save();renderDir();}
+          toast('Calendar event updated to '+fmtDate(newFuDate)+' ✓','success');
+        } else {
+          toast('Calendar event removed (no upcoming date)','info');
+          renderDir();
+        }
+      }catch(e){
+        toast('Contact saved — could not update calendar: '+e.message,'error');
+      }
+    });
+  } else {
+    save();updateFUCount();closeModal();renderDir();toast('Contact updated','ok');
+  }
 }
 function confirmDelete(){
   if(!editingId)return;var name=(contacts.find(function(c){return c.id===editingId;})||{}).name||'Contact';
